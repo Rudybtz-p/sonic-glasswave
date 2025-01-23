@@ -1,147 +1,74 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { Controls } from './visualizer/Controls';
-import { CubeUploader } from './visualizer/CubeUploader';
-import { Scene } from './visualizer/Scene';
-import { AudioController } from './visualizer/AudioController';
-import { CubeImageUploader } from './visualizer/CubeImageUploader';
+import { AudioAnalyzer } from './AudioAnalyzer';
+import { ParticleSystem } from './ParticleSystem';
+import { createCubeGeometry } from './CubeGeometry';
+import { setupLights } from './Lights';
 
 interface AudioVisualizerProps {
-  rotationSpeed?: number;
-  cubeColor?: string;
-  cubeSize?: number;
+  rotationSpeed: number;
+  cubeColor: string;
+  cubeSize: number;
+  particleEnabled: boolean;
+  neonEnabled: boolean;
 }
 
-export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
-  rotationSpeed = 1,
-  cubeColor = '#8B5CF6',
-  cubeSize = 1
+const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
+  rotationSpeed,
+  cubeColor,
+  cubeSize,
+  particleEnabled,
+  neonEnabled,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<THREE.Scene | null>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const cubeRef = useRef<THREE.Mesh | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const audioAnalyzerRef = useRef<AudioAnalyzer | null>(null);
+  const particleSystemRef = useRef<ParticleSystem | null>(null);
 
-  const handleSceneReady = useCallback((
-    scene: THREE.Scene,
-    camera: THREE.PerspectiveCamera,
-    renderer: THREE.WebGLRenderer,
-    cube: THREE.Mesh
-  ) => {
-    sceneRef.current = scene;
-    cameraRef.current = camera;
-    rendererRef.current = renderer;
-    cubeRef.current = cube;
+  useEffect(() => {
+    if (!containerRef.current) return;
 
-    // Update cube properties based on props
-    if (cubeRef.current) {
-      cubeRef.current.scale.set(cubeSize, cubeSize, cubeSize);
-      if (Array.isArray(cubeRef.current.material)) {
-        cubeRef.current.material.forEach(material => {
-          if (material instanceof THREE.MeshPhongMaterial) {
-            material.color.setStyle(cubeColor);
-          }
-        });
-      }
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    containerRef.current.appendChild(renderer.domElement);
+
+    const cube = createCubeGeometry();
+    scene.add(cube);
+    setupLights(scene);
+
+    audioAnalyzerRef.current = new AudioAnalyzer();
+    audioAnalyzerRef.current.connectToAudio(new Audio('/audio/sample-beat.mp3'));
+
+    if (particleEnabled) {
+      particleSystemRef.current = new ParticleSystem(scene);
     }
 
     const animate = () => {
-      if (!cube || !scene || !camera || !renderer) return;
+      requestAnimationFrame(animate);
+      cube.rotation.x += rotationSpeed * 0.01;
+      cube.rotation.y += rotationSpeed * 0.01;
 
-      cube.rotation.x += 0.01 * rotationSpeed;
-      cube.rotation.y += 0.01 * rotationSpeed;
+      if (particleSystemRef.current) {
+        const audioData = audioAnalyzerRef.current.getAudioData();
+        particleSystemRef.current.update(audioData);
+      }
 
       renderer.render(scene, camera);
-      animationFrameRef.current = requestAnimationFrame(animate);
     };
 
     animate();
-  }, [rotationSpeed, cubeColor, cubeSize]);
 
-  const handleAudioData = useCallback((audioData: Uint8Array) => {
-    if (sceneRef.current) {
-      const particles = sceneRef.current.children.find(
-        child => child instanceof THREE.Points
-      );
-      if (particles) {
-        const positions = (particles.geometry as THREE.BufferGeometry).attributes.position.array as Float32Array;
-        const colors = (particles.geometry as THREE.BufferGeometry).attributes.color.array as Float32Array;
-        
-        for (let i = 0; i < positions.length; i += 3) {
-          const audioIndex = Math.floor(i / 3) % audioData.length;
-          const amplitude = audioData[audioIndex] / 255;
-          
-          positions[i + 1] += Math.sin(Date.now() * 0.001 + i) * 0.01 * amplitude;
-          colors[i] = amplitude;
-          colors[i + 1] = 0.5 * amplitude;
-          colors[i + 2] = 1.0 - amplitude;
-        }
-        
-        (particles.geometry as THREE.BufferGeometry).attributes.position.needsUpdate = true;
-        (particles.geometry as THREE.BufferGeometry).attributes.color.needsUpdate = true;
+    return () => {
+      if (containerRef.current) {
+        containerRef.current.removeChild(renderer.domElement);
       }
-    }
-  }, []);
-
-  const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleImageUpload = (face: string, file: File) => {
-    if (!cubeRef.current) {
-      console.error('Cube not initialized');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (!event.target?.result || !cubeRef.current) return;
-
-      const texture = new THREE.TextureLoader().load(event.target.result as string);
-      const materials = Array.isArray(cubeRef.current.material) 
-        ? cubeRef.current.material 
-        : [cubeRef.current.material];
-
-      const faceIndex = ['right', 'left', 'top', 'bottom', 'front', 'back'].indexOf(face);
-      if (faceIndex === -1) {
-        console.error('Invalid face:', face);
-        return;
-      }
-
-      if (materials[faceIndex] && materials[faceIndex] instanceof THREE.MeshPhongMaterial) {
-        materials[faceIndex].map = texture;
-        console.log(`Updated texture for ${face} face at index ${faceIndex}`);
-      } else {
-        console.error('Invalid material at index:', faceIndex);
-      }
+      audioAnalyzerRef.current?.dispose();
+      particleSystemRef.current?.dispose();
     };
+  }, [rotationSpeed, particleEnabled]);
 
-    console.log(`Processing image upload for ${face} face`);
-    reader.readAsDataURL(file);
-  };
-
-  return (
-    <div className="relative w-full h-[600px] rounded-lg overflow-hidden border border-neon-purple/20">
-      <div ref={containerRef} className="w-full h-full">
-        <Scene
-          containerRef={containerRef}
-          onSceneReady={handleSceneReady}
-        />
-      </div>
-      <AudioController
-        isPlaying={isPlaying}
-        onAudioData={handleAudioData}
-      />
-      <div className="absolute bottom-0 left-0 right-0 bg-black/50 backdrop-blur-sm">
-        <Controls isPlaying={isPlaying} onPlayPause={handlePlayPause} />
-      </div>
-      <CubeImageUploader
-        cube={cubeRef.current}
-        onImageUpload={handleImageUpload}
-      />
-    </div>
-  );
+  return <div ref={containerRef} className="w-full h-full" />;
 };
+
+export default AudioVisualizer;

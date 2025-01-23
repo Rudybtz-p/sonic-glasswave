@@ -1,6 +1,7 @@
 import React from 'react';
 import { Slider } from '../ui/slider';
 import { Label } from '../ui/label';
+import { Switch } from '../ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Settings } from 'lucide-react';
 
@@ -8,12 +9,16 @@ interface CubeCustomizationProps {
   onRotationSpeedChange: (speed: number) => void;
   onColorChange: (color: string) => void;
   onSizeChange: (size: number) => void;
+  onParticleToggle: (enabled: boolean) => void;
+  onNeonToggle: (enabled: boolean) => void;
 }
 
 export const CubeCustomization: React.FC<CubeCustomizationProps> = ({
   onRotationSpeedChange,
   onColorChange,
   onSizeChange,
+  onParticleToggle,
+  onNeonToggle,
 }) => {
   return (
     <Card className="bg-black/80 backdrop-blur-sm border-neon-purple/20">
@@ -62,6 +67,24 @@ export const CubeCustomization: React.FC<CubeCustomizationProps> = ({
               />
             ))}
           </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="particle-effects">Particle Effects</Label>
+          <Switch
+            id="particle-effects"
+            onCheckedChange={onParticleToggle}
+            defaultChecked
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="neon-borders">Neon Borders</Label>
+          <Switch
+            id="neon-borders"
+            onCheckedChange={onNeonToggle}
+            defaultChecked
+          />
         </div>
       </CardContent>
     </Card>
