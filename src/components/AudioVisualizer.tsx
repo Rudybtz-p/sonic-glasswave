@@ -55,15 +55,25 @@ export const AudioVisualizer = () => {
 
     // Load font and create text
     const fontLoader = new FontLoader();
-    fontLoader.load('/fonts/helvetiker_regular.typeface.json', (font) => {
-      const { textMesh, strokeMesh } = createCubeText(
-        font,
-        new THREE.Vector3(0, 2, 0),
-        new THREE.Euler(0, 0, 0)
-      );
-      scene.add(textMesh);
-      scene.add(strokeMesh);
-    });
+    fontLoader.load(
+      '/fonts/helvetiker_regular.typeface.json',
+      (font) => {
+        console.log('Font loaded successfully');
+        const { textMesh, strokeMesh } = createCubeText(
+          font,
+          new THREE.Vector3(0, 2, 0),
+          new THREE.Euler(0, 0, 0)
+        );
+        scene.add(textMesh);
+        scene.add(strokeMesh);
+      },
+      (progress) => {
+        console.log('Font loading progress:', (progress.loaded / progress.total * 100) + '%');
+      },
+      (error) => {
+        console.error('Error loading font:', error);
+      }
+    );
 
     // Store refs
     sceneRef.current = scene;
