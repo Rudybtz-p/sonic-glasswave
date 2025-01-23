@@ -69,6 +69,39 @@ export const AudioVisualizer = () => {
     setIsPlaying(!isPlaying);
   };
 
+  const handleImageUpload = (face: string, file: File) => {
+    if (!cubeRef.current) {
+      console.error('Cube not initialized');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (!event.target?.result || !cubeRef.current) return;
+
+      const texture = new THREE.TextureLoader().load(event.target.result as string);
+      const materials = Array.isArray(cubeRef.current.material) 
+        ? cubeRef.current.material 
+        : [cubeRef.current.material];
+
+      const faceIndex = ['right', 'left', 'top', 'bottom', 'front', 'back'].indexOf(face);
+      if (faceIndex === -1) {
+        console.error('Invalid face:', face);
+        return;
+      }
+
+      if (materials[faceIndex] && materials[faceIndex] instanceof THREE.MeshPhongMaterial) {
+        materials[faceIndex].map = texture;
+        console.log(`Updated texture for ${face} face at index ${faceIndex}`);
+      } else {
+        console.error('Invalid material at index:', faceIndex);
+      }
+    };
+
+    console.log(`Processing image upload for ${face} face`);
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="relative w-full h-[600px] rounded-lg overflow-hidden border border-neon-purple/20">
       <div ref={containerRef} className="w-full h-full">
@@ -86,11 +119,7 @@ export const AudioVisualizer = () => {
       </div>
       <CubeImageUploader
         cube={cubeRef.current}
-        onImageUpload={(face, file) => {
-          if (cubeRef.current) {
-            handleImageUpload(face, file);
-          }
-        }}
+        onImageUpload={handleImageUpload}
       />
     </div>
   );
