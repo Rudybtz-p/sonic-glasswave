@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { AudioAnalyzer } from './AudioAnalyzer';
-import { ParticleSystem } from './ParticleSystem';
-import { createCubeGeometry } from './CubeGeometry';
-import { setupLights } from './Lights';
+import { AudioAnalyzer } from './visualizer/AudioAnalyzer';
+import { ParticleSystem } from './visualizer/ParticleSystem';
+import { createCubeGeometry } from './visualizer/CubeGeometry';
+import { setupLights } from './visualizer/Lights';
 
 interface AudioVisualizerProps {
   rotationSpeed: number;
@@ -50,7 +50,7 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
       cube.rotation.y += rotationSpeed * 0.01;
 
       if (particleSystemRef.current) {
-        const audioData = audioAnalyzerRef.current.getAudioData();
+        const audioData = audioAnalyzerRef.current?.getAudioData();
         particleSystemRef.current.update(audioData);
       }
 

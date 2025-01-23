@@ -5,7 +5,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Music, Upload } from 'lucide-react';
 import { toast } from 'sonner';
-import { AudioVisualizer } from './AudioVisualizer';
+import AudioVisualizer from './AudioVisualizer';
 import { CubeCustomization } from './visualizer/CubeCustomization';
 
 interface BeatUploaderProps {
@@ -19,6 +19,8 @@ export const BeatUploader: React.FC<BeatUploaderProps> = ({ isPremium = false })
   const [cubeRotationSpeed, setCubeRotationSpeed] = useState(1);
   const [cubeColor, setCubeColor] = useState('#8B5CF6');
   const [cubeSize, setCubeSize] = useState(1);
+  const [particleEnabled, setParticleEnabled] = useState(true);
+  const [neonEnabled, setNeonEnabled] = useState(true);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -49,7 +51,9 @@ export const BeatUploader: React.FC<BeatUploaderProps> = ({ isPremium = false })
       cubeSettings: isPremium ? {
         rotationSpeed: cubeRotationSpeed,
         color: cubeColor,
-        size: cubeSize
+        size: cubeSize,
+        particleEnabled,
+        neonEnabled
       } : undefined
     });
     toast.success('Beat saved successfully!');
@@ -101,11 +105,19 @@ export const BeatUploader: React.FC<BeatUploaderProps> = ({ isPremium = false })
           {showVisualizer && isPremium && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Customize Your Beat Visualizer</h3>
-              <AudioVisualizer />
+              <AudioVisualizer
+                rotationSpeed={cubeRotationSpeed}
+                cubeColor={cubeColor}
+                cubeSize={cubeSize}
+                particleEnabled={particleEnabled}
+                neonEnabled={neonEnabled}
+              />
               <CubeCustomization
                 onRotationSpeedChange={setCubeRotationSpeed}
                 onColorChange={setCubeColor}
                 onSizeChange={setCubeSize}
+                onParticleToggle={setParticleEnabled}
+                onNeonToggle={setNeonEnabled}
               />
             </div>
           )}

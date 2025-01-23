@@ -1,7 +1,7 @@
 import React from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { AudioVisualizer } from '@/components/AudioVisualizer';
+import AudioVisualizer from '@/components/AudioVisualizer';
 import { BeatsTable } from '@/components/BeatsTable';
 
 const Beats = () => {
@@ -10,7 +10,13 @@ const Beats = () => {
       <Header />
       <main className="flex-grow container mx-auto space-y-8 py-8">
         <div className="space-y-8">
-          <AudioVisualizer />
+          <AudioVisualizer
+            rotationSpeed={1}
+            cubeColor="#8B5CF6"
+            cubeSize={1}
+            particleEnabled={true}
+            neonEnabled={true}
+          />
           <BeatsTable />
         </div>
       </main>
