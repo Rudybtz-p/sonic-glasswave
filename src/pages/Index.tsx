@@ -12,6 +12,8 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { APIKeyManager } from "@/components/APIKeyManager";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const Index = () => {
   const [rotationSpeed, setRotationSpeed] = useState(1);
@@ -19,6 +21,7 @@ const Index = () => {
   const [cubeSize, setCubeSize] = useState(1);
   const [particleEnabled, setParticleEnabled] = useState(true);
   const [neonEnabled, setNeonEnabled] = useState(true);
+  const [displayText, setDisplayText] = useState('');
   const { toast } = useToast();
 
   const handleGenerateAI = () => {
@@ -97,17 +100,31 @@ const Index = () => {
                     cubeSize={cubeSize}
                     particleEnabled={particleEnabled}
                     neonEnabled={neonEnabled}
+                    displayText={displayText}
                   />
                 </Card>
-                <Card className="p-6 bg-black/80 backdrop-blur-sm border-neon-purple/20">
-                  <CubeCustomization
-                    onRotationSpeedChange={setRotationSpeed}
-                    onColorChange={setCubeColor}
-                    onSizeChange={setCubeSize}
-                    onParticleToggle={setParticleEnabled}
-                    onNeonToggle={setNeonEnabled}
-                  />
-                </Card>
+                <div className="space-y-4">
+                  <Card className="p-6 bg-black/80 backdrop-blur-sm border-neon-purple/20">
+                    <div className="space-y-4">
+                      <Label htmlFor="displayText">3D Text</Label>
+                      <Input
+                        id="displayText"
+                        placeholder="Enter text to display in 3D..."
+                        value={displayText}
+                        onChange={(e) => setDisplayText(e.target.value)}
+                      />
+                    </div>
+                  </Card>
+                  <Card className="p-6 bg-black/80 backdrop-blur-sm border-neon-purple/20">
+                    <CubeCustomization
+                      onRotationSpeedChange={setRotationSpeed}
+                      onColorChange={setCubeColor}
+                      onSizeChange={setCubeSize}
+                      onParticleToggle={setParticleEnabled}
+                      onNeonToggle={setNeonEnabled}
+                    />
+                  </Card>
+                </div>
               </div>
             </TabsContent>
 

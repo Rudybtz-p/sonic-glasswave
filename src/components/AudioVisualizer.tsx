@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { AudioAnalyzer } from './visualizer/AudioAnalyzer';
 import { ParticleSystem } from './visualizer/ParticleSystem';
 import { createCubeGeometry } from './visualizer/CubeGeometry';
 import { setupLights } from './visualizer/Lights';
+import { Text3D } from './visualizer/Text3D';
 
 interface AudioVisualizerProps {
   rotationSpeed: number;
@@ -11,6 +12,7 @@ interface AudioVisualizerProps {
   cubeSize: number;
   particleEnabled: boolean;
   neonEnabled: boolean;
+  displayText?: string;
 }
 
 const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
@@ -19,17 +21,19 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
   cubeSize,
   particleEnabled,
   neonEnabled,
+  displayText
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cubeRef = useRef<THREE.Mesh | null>(null);
   const audioAnalyzerRef = useRef<AudioAnalyzer | null>(null);
   const particleSystemRef = useRef<ParticleSystem | null>(null);
+  const [audioData, setAudioData] = useState<Uint8Array | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    console.log('Initializing Three.js scene');
+    console.log('Initializing Three.js scene with enhanced features');
     
     const scene = new THREE.Scene();
     sceneRef.current = scene;
@@ -51,6 +55,17 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
 
     setupLights(scene);
 
+    if (displayText) {
+      console.log('Adding 3D text to scene:', displayText);
+      const text3D = new Text3D({
+        text: displayText,
+        color: cubeColor,
+        size: 0.5,
+        position: [0, 2, 0]
+      });
+      scene.add(text3D as unknown as THREE.Object3D);
+    }
+
     audioAnalyzerRef.current = new AudioAnalyzer();
     audioAnalyzerRef.current.connectToAudio(new Audio('/audio/sample-beat.mp3'));
 
@@ -70,6 +85,7 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
 
       if (particleSystemRef.current && audioAnalyzerRef.current) {
         const audioData = audioAnalyzerRef.current.getAudioData();
+        setAudioData(audioData);
         particleSystemRef.current.update(audioData);
       }
 
@@ -78,22 +94,32 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
 
     animate();
 
+    const handleResize = () => {
+      if (!containerRef.current) return;
+      const width = containerRef.current.clientWidth;
+      const height = containerRef.current.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    };
+
+    window.addEventListener('resize', handleResize);
+
     return () => {
       console.log('Cleaning up Three.js scene');
+      window.removeEventListener('resize', handleResize);
       if (containerRef.current) {
         containerRef.current.removeChild(renderer.domElement);
       }
       audioAnalyzerRef.current?.dispose();
       particleSystemRef.current?.dispose();
     };
-  }, [rotationSpeed, particleEnabled]);
+  }, [rotationSpeed, particleEnabled, displayText, cubeColor]);
 
-  // Update cube properties when they change
   useEffect(() => {
     if (cubeRef.current) {
       console.log('Updating cube properties:', { cubeColor, cubeSize });
       
-      // Update cube color
       if (Array.isArray(cubeRef.current.material)) {
         cubeRef.current.material.forEach((material) => {
           if (material instanceof THREE.MeshPhongMaterial) {
@@ -104,25 +130,29 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
         cubeRef.current.material.color.set(cubeColor);
       }
       
-      // Update cube size
       cubeRef.current.scale.set(cubeSize, cubeSize, cubeSize);
     }
   }, [cubeColor, cubeSize]);
 
-  // Update particle system when enabled/disabled
-  useEffect(() => {
-    if (!sceneRef.current) return;
-    
-    if (particleEnabled && !particleSystemRef.current) {
-      particleSystemRef.current = new ParticleSystem(sceneRef.current);
-    } else if (!particleEnabled && particleSystemRef.current) {
-      particleSystemRef.current.dispose();
-      particleSystemRef.current = null;
-    }
-  }, [particleEnabled]);
-
   return (
-    <div ref={containerRef} className="w-full h-full min-h-[400px]" />
+    <div ref={containerRef} className="w-full h-full min-h-[400px]">
+      {audioData && (
+        <div className="absolute bottom-4 left-4 right-4 bg-black/50 p-2 rounded-lg">
+          <div className="flex gap-1 h-16">
+            {Array.from(audioData).map((value, index) => (
+              <div
+                key={index}
+                className="flex-1 bg-primary"
+                style={{
+                  height: `${(value / 255) * 100}%`,
+                  transition: 'height 0.1s ease'
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
