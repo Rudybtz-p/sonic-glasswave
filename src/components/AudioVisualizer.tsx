@@ -7,7 +7,7 @@ import { setupLights } from './visualizer/Lights';
 import { Controls } from './visualizer/Controls';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Circle, MessageCircle, ThumbsUp, UserPlus, MessageSquarePlus } from 'lucide-react';
+import { Circle, MessageCircle, ThumbsUp, UserPlus, MessageSquarePlus, Share2 } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   Dialog,
@@ -57,6 +57,11 @@ export const AudioVisualizer = () => {
       setNewComment("");
       console.log('New comment added:', newComment);
     }
+  };
+
+  const handleShare = (platform: string) => {
+    console.log(`Sharing to ${platform}`);
+    // Here you would implement the actual sharing logic for each platform
   };
 
   useEffect(() => {
@@ -169,8 +174,9 @@ export const AudioVisualizer = () => {
         ))}
       </div>
 
-      {/* Add Comment Button */}
-      <div className="absolute bottom-4 left-4 z-10">
+      {/* Action Buttons */}
+      <div className="absolute bottom-4 left-4 z-10 flex gap-2">
+        {/* Comment Dialog */}
         <Dialog>
           <DialogTrigger asChild>
             <Button 
@@ -200,6 +206,53 @@ export const AudioVisualizer = () => {
                 className="w-full bg-neon-purple hover:bg-neon-pink transition-colors duration-300"
               >
                 Post Comment
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Share Dialog */}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="icon"
+              className="bg-neon-purple/20 border-neon-purple/50 hover:bg-neon-purple/30"
+            >
+              <Share2 className="h-4 w-4 text-white" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-black/90 border-neon-purple/20 backdrop-blur-sm text-white">
+            <DialogHeader>
+              <DialogTitle>Share Track</DialogTitle>
+              <DialogDescription className="text-gray-400">
+                Share this track on your favorite platform
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-4">
+              <Button 
+                onClick={() => handleShare('twitter')}
+                className="bg-[#1DA1F2] hover:bg-[#1DA1F2]/90"
+              >
+                Twitter
+              </Button>
+              <Button 
+                onClick={() => handleShare('facebook')}
+                className="bg-[#4267B2] hover:bg-[#4267B2]/90"
+              >
+                Facebook
+              </Button>
+              <Button 
+                onClick={() => handleShare('instagram')}
+                className="bg-[#E4405F] hover:bg-[#E4405F]/90"
+              >
+                Instagram
+              </Button>
+              <Button 
+                onClick={() => handleShare('copy')}
+                className="bg-gray-700 hover:bg-gray-600"
+              >
+                Copy Link
               </Button>
             </div>
           </DialogContent>
