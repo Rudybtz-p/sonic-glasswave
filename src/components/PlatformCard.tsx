@@ -18,6 +18,8 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
   onGenerateAI
 }) => {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [localDescription, setLocalDescription] = useState(description);
+  const [tags, setTags] = useState('');
 
   const platforms = [
     { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-youtube' },
@@ -80,7 +82,8 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
           <Label>Description</Label>
           <Textarea
             placeholder="Enter your description..."
-            value={description}
+            value={localDescription}
+            onChange={(e) => setLocalDescription(e.target.value)}
             className="mb-4 h-32"
           />
         </div>
@@ -89,6 +92,8 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
           <Label>Tags</Label>
           <Textarea
             placeholder="Enter tags (comma separated)..."
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
             className="mb-4"
           />
         </div>
