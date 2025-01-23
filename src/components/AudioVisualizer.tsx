@@ -6,10 +6,34 @@ import { createCubeText } from './visualizer/CubeText';
 import { setupLights } from './visualizer/Lights';
 import { Controls } from './visualizer/Controls';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Circle, MessageCircle, ThumbsUp } from 'lucide-react';
 
 export const AudioVisualizer = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [comments, setComments] = useState<string[]>([]);
+  const [likes, setLikes] = useState(0);
+
+  // Simulate real-time comments
+  useEffect(() => {
+    if (isPlaying) {
+      const interval = setInterval(() => {
+        setComments(prev => [...prev, `Great beat! ${new Date().getSeconds()}`].slice(-3));
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [isPlaying]);
+
+  // Simulate real-time likes
+  useEffect(() => {
+    if (isPlaying) {
+      const interval = setInterval(() => {
+        setLikes(prev => prev + 1);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [isPlaying]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -77,7 +101,45 @@ export const AudioVisualizer = () => {
   }, []);
 
   return (
-    <Card className="bg-gradient-to-br from-black/80 to-purple-900/50 backdrop-blur-sm border-neon-purple/20">
+    <Card className="bg-gradient-to-br from-black/80 to-purple-900/50 backdrop-blur-sm border-neon-purple/20 relative">
+      {/* User Profile */}
+      <div className="absolute top-4 left-4 z-10">
+        <Avatar>
+          <AvatarImage src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158" />
+          <AvatarFallback>
+            <Circle className="w-10 h-10" />
+          </AvatarFallback>
+        </Avatar>
+      </div>
+
+      {/* Gender/Style Tag */}
+      <div className="absolute top-4 right-4 z-10">
+        <span className="bg-neon-purple/20 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
+          @electronic/ambient
+        </span>
+      </div>
+
+      {/* Comments Section */}
+      <div className="absolute bottom-16 left-4 z-10 space-y-2">
+        {comments.map((comment, index) => (
+          <div
+            key={index}
+            className="flex items-center gap-2 text-white text-sm bg-black/40 backdrop-blur-sm rounded-full px-3 py-1 animate-fade-in"
+          >
+            <MessageCircle className="w-4 h-4" />
+            {comment}
+          </div>
+        ))}
+      </div>
+
+      {/* Likes Section */}
+      <div className="absolute bottom-16 right-4 z-10">
+        <div className="flex items-center gap-2 text-white text-sm bg-black/40 backdrop-blur-sm rounded-full px-3 py-1">
+          <ThumbsUp className="w-4 h-4" />
+          {likes} likes
+        </div>
+      </div>
+
       <div ref={containerRef} className="w-full h-[400px] rounded-lg" />
       <Controls isPlaying={isPlaying} onPlayPause={() => setIsPlaying(!isPlaying)} />
     </Card>
