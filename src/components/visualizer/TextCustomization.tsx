@@ -5,7 +5,9 @@ import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Switch } from '../ui/switch';
 import { Slider } from '../ui/slider';
-import { Type, Sparkles, Zap } from 'lucide-react';
+import { Type, Sparkles, Zap, Palette } from 'lucide-react';
+import { Button } from '../ui/button';
+import { useToast } from '../ui/use-toast';
 
 interface TextCustomizationProps {
   onTextChange: (text: string) => void;
@@ -14,6 +16,7 @@ interface TextCustomizationProps {
   onNeonToggle: (enabled: boolean) => void;
   onSizeChange: (size: number) => void;
   onColorChange: (color: string) => void;
+  onAnimationChange: (animation: string) => void;
 }
 
 export const TextCustomization: React.FC<TextCustomizationProps> = ({
@@ -23,12 +26,41 @@ export const TextCustomization: React.FC<TextCustomizationProps> = ({
   onNeonToggle,
   onSizeChange,
   onColorChange,
+  onAnimationChange,
 }) => {
   const [text, setText] = useState('');
+  const { toast } = useToast();
   
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
     onTextChange(e.target.value);
+  };
+
+  const handlePresetSelect = (preset: string) => {
+    switch(preset) {
+      case 'neon':
+        onGlowToggle(true);
+        onNeonToggle(true);
+        onColorChange('#F97316');
+        onAnimationChange('pulse');
+        toast({
+          title: "Neon Preset Applied",
+          description: "The neon text effect has been applied.",
+        });
+        break;
+      case 'minimal':
+        onGlowToggle(false);
+        onNeonToggle(false);
+        onColorChange('#FFFFFF');
+        onAnimationChange('none');
+        toast({
+          title: "Minimal Preset Applied",
+          description: "The minimal text effect has been applied.",
+        });
+        break;
+      default:
+        break;
+    }
   };
 
   return (
@@ -89,6 +121,21 @@ export const TextCustomization: React.FC<TextCustomizationProps> = ({
           </div>
         </div>
 
+        <div className="space-y-2">
+          <Label>Animation Style</Label>
+          <Select onValueChange={onAnimationChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select animation" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">None</SelectItem>
+              <SelectItem value="pulse">Pulse</SelectItem>
+              <SelectItem value="bounce">Bounce</SelectItem>
+              <SelectItem value="rotate">Rotate</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-neon-purple" />
@@ -103,6 +150,26 @@ export const TextCustomization: React.FC<TextCustomizationProps> = ({
             <Label htmlFor="neon-effect">Neon Effect</Label>
           </div>
           <Switch id="neon-effect" onCheckedChange={onNeonToggle} defaultChecked />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Quick Presets</Label>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => handlePresetSelect('neon')}
+            >
+              Neon Style
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => handlePresetSelect('minimal')}
+            >
+              Minimal
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -14,6 +14,10 @@ interface Scene3DProps {
   particleEnabled: boolean;
   neonEnabled: boolean;
   onSceneReady?: (scene: THREE.Scene) => void;
+  textAnimation?: string;
+  textColor?: string;
+  textSize?: number;
+  glowEnabled?: boolean;
 }
 
 export const Scene3D: React.FC<Scene3DProps> = ({
@@ -24,7 +28,11 @@ export const Scene3D: React.FC<Scene3DProps> = ({
   audioData,
   particleEnabled,
   neonEnabled,
-  onSceneReady
+  onSceneReady,
+  textAnimation = 'none',
+  textColor = '#F97316',
+  textSize = 1,
+  glowEnabled = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -35,7 +43,7 @@ export const Scene3D: React.FC<Scene3DProps> = ({
   useEffect(() => {
     if (!containerRef.current) return;
 
-    console.log('Initializing Three.js scene with enhanced features');
+    console.log('Initializing Three.js scene with enhanced text features');
     
     const scene = new THREE.Scene();
     sceneRef.current = scene;
@@ -61,9 +69,10 @@ export const Scene3D: React.FC<Scene3DProps> = ({
       console.log('Adding 3D text to scene:', displayText);
       const text3D = new Text3D({
         text: displayText,
-        color: cubeColor,
-        size: 0.5,
-        position: [0, 2, 0]
+        color: textColor,
+        size: textSize,
+        position: [0, 2, 0],
+        glow: glowEnabled
       });
       textRef.current = text3D;
       scene.add(text3D);
@@ -92,10 +101,24 @@ export const Scene3D: React.FC<Scene3DProps> = ({
       }
 
       if (textRef.current && audioData) {
-        // Update text based on audio data
         const bassFrequency = audioData[0] || 0;
-        const scale = 1 + (bassFrequency / 255) * 0.2;
-        textRef.current.scale.set(scale, scale, scale);
+        let scale = 1;
+        
+        switch (textAnimation) {
+          case 'pulse':
+            scale = 1 + (bassFrequency / 255) * 0.2;
+            textRef.current.scale.set(scale, scale, scale);
+            break;
+          case 'bounce':
+            const bounceHeight = (bassFrequency / 255) * 0.5;
+            textRef.current.position.y = 2 + bounceHeight;
+            break;
+          case 'rotate':
+            textRef.current.rotation.y += (bassFrequency / 255) * 0.05;
+            break;
+          default:
+            break;
+        }
       }
 
       renderer.render(scene, camera);
@@ -124,7 +147,7 @@ export const Scene3D: React.FC<Scene3DProps> = ({
         particleSystemRef.current.dispose();
       }
     };
-  }, [rotationSpeed, displayText, cubeColor, particleEnabled, onSceneReady]);
+  }, [rotationSpeed, displayText, cubeColor, particleEnabled, onSceneReady, textAnimation, textColor, textSize, glowEnabled]);
 
   useEffect(() => {
     if (cubeRef.current) {
