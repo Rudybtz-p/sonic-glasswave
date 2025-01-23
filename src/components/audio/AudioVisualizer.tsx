@@ -10,6 +10,7 @@ interface AudioVisualizerProps {
   particleEnabled: boolean;
   neonEnabled: boolean;
   displayText?: string;
+  audioData: Uint8Array | null;
 }
 
 const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
@@ -18,17 +19,12 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
   cubeSize,
   particleEnabled,
   neonEnabled,
-  displayText
+  displayText,
+  audioData
 }) => {
-  const [audioData, setAudioData] = useState<Uint8Array | null>(null);
-
-  const handleAudioData = (data: Uint8Array) => {
-    setAudioData(data);
-  };
-
   return (
     <div className="relative w-full h-full">
-      <AudioController onAudioData={handleAudioData} />
+      <AudioController onAudioData={() => {}} />
       <Scene3D
         rotationSpeed={rotationSpeed}
         cubeColor={cubeColor}

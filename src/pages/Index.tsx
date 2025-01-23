@@ -22,10 +22,12 @@ const Index = () => {
   const [cubeSize, setCubeSize] = useState(1);
   const [particleEnabled, setParticleEnabled] = useState(true);
   const [neonEnabled, setNeonEnabled] = useState(true);
+  const [textSize, setTextSize] = useState(1);
+  const [textColor, setTextColor] = useState('#F97316');
   const [displayText, setDisplayText] = useState('');
-  const [glowEnabled, setGlowEnabled] = useState(false);
   const [selectedFont, setSelectedFont] = useState('helvetiker');
   const { toast } = useToast();
+  const [glowEnabled, setGlowEnabled] = useState(false);
 
   const handleGenerateAI = () => {
     console.log('Generating AI content');
@@ -48,6 +50,16 @@ const Index = () => {
   const handleGlowToggle = (enabled: boolean) => {
     console.log('Glow effect toggled:', enabled);
     setGlowEnabled(enabled);
+  };
+
+  const handleTextSizeChange = (size: number) => {
+    console.log('Text size changed:', size);
+    setTextSize(size);
+  };
+
+  const handleTextColorChange = (color: string) => {
+    console.log('Text color changed:', color);
+    setTextColor(color);
   };
 
   // For demo purposes, you would typically get this from your auth state
@@ -120,6 +132,7 @@ const Index = () => {
                     particleEnabled={particleEnabled}
                     neonEnabled={neonEnabled}
                     displayText={displayText}
+                    audioData={null}
                   />
                 </Card>
                 <div className="space-y-4">
@@ -151,6 +164,7 @@ const Index = () => {
                     particleEnabled={particleEnabled}
                     neonEnabled={neonEnabled}
                     displayText={displayText}
+                    audioData={null}
                   />
                 </Card>
                 <div className="space-y-4">
@@ -159,6 +173,8 @@ const Index = () => {
                     onFontChange={handleFontChange}
                     onGlowToggle={handleGlowToggle}
                     onNeonToggle={setNeonEnabled}
+                    onSizeChange={handleTextSizeChange}
+                    onColorChange={handleTextColorChange}
                   />
                 </div>
               </div>
