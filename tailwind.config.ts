@@ -23,6 +23,12 @@ export default {
         instagram: "#E4405F",
         facebook: "#1877F2",
         tiktok: "#000000",
+        neon: {
+          purple: "#8B5CF6",
+          pink: "#D946EF",
+          orange: "#F97316",
+          blue: "#0EA5E9",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
