@@ -55,23 +55,31 @@ export const AudioVisualizer = () => {
 
     // Load font and create text
     const fontLoader = new FontLoader();
+    const fontPath = '/fonts/helvetiker_regular.typeface.json';
+    console.log('Loading font from:', fontPath);
+    
     fontLoader.load(
-      '/fonts/helvetiker_regular.typeface.json',
+      fontPath,
       (font) => {
         console.log('Font loaded successfully');
-        const { textMesh, strokeMesh } = createCubeText(
-          font,
-          new THREE.Vector3(0, 2, 0),
-          new THREE.Euler(0, 0, 0)
-        );
-        scene.add(textMesh);
-        scene.add(strokeMesh);
+        try {
+          const { textMesh, strokeMesh } = createCubeText(
+            font,
+            new THREE.Vector3(0, 2, 0),
+            new THREE.Euler(0, 0, 0)
+          );
+          scene.add(textMesh);
+          scene.add(strokeMesh);
+        } catch (error) {
+          console.error('Error creating text meshes:', error);
+        }
       },
       (progress) => {
         console.log('Font loading progress:', (progress.loaded / progress.total * 100) + '%');
       },
       (error) => {
         console.error('Error loading font:', error);
+        console.error('Font path attempted:', fontPath);
       }
     );
 
@@ -163,16 +171,15 @@ export const AudioVisualizer = () => {
       if (!event.target?.result || !cubeRef.current) return;
 
       const texture = new THREE.TextureLoader().load(event.target.result as string);
-      const materials = cubeRef.current.material as THREE.Material[];
-      
-      if (!Array.isArray(materials)) {
-        console.error('Cube materials not properly initialized');
-        return;
-      }
+      const materials = Array.isArray(cubeRef.current.material) 
+        ? cubeRef.current.material 
+        : [cubeRef.current.material];
 
-      if (materials[faceIndex]) {
-        (materials[faceIndex] as THREE.MeshPhongMaterial).map = texture;
+      if (materials[faceIndex] && materials[faceIndex] instanceof THREE.MeshPhongMaterial) {
+        materials[faceIndex].map = texture;
         console.log(`Updated texture for ${face} face at index ${faceIndex}`);
+      } else {
+        console.error('Invalid material at index:', faceIndex);
       }
     };
 
