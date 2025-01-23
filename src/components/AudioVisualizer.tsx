@@ -63,7 +63,7 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
         size: 0.5,
         position: [0, 2, 0]
       });
-      scene.add(text3D as unknown as THREE.Object3D);
+      scene.add(text3D);
     }
 
     audioAnalyzerRef.current = new AudioAnalyzer();

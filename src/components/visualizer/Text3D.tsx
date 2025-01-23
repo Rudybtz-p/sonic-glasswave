@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { useEffect, useRef } from 'react';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
 interface Text3DProps {
   text: string;
@@ -8,15 +9,15 @@ interface Text3DProps {
   position?: [number, number, number];
 }
 
-export const Text3D = ({ text, color, size = 1, position = [0, 0, 0] }: Text3DProps) => {
-  const textRef = useRef<THREE.Mesh | null>(null);
-
-  useEffect(() => {
+export class Text3D extends THREE.Object3D {
+  constructor({ text, color, size = 1, position = [0, 0, 0] }: Text3DProps) {
+    super();
+    
     console.log('Initializing 3D Text with:', { text, color, size });
     
-    const loader = new THREE.FontLoader();
+    const loader = new FontLoader();
     loader.load('/fonts/helvetiker_regular.typeface.json', (font) => {
-      const textGeometry = new THREE.TextGeometry(text, {
+      const textGeometry = new TextGeometry(text, {
         font: font,
         size: size,
         height: 0.2,
@@ -34,14 +35,11 @@ export const Text3D = ({ text, color, size = 1, position = [0, 0, 0] }: Text3DPr
         shininess: 100,
       });
 
-      if (textRef.current) {
-        textRef.current.geometry = textGeometry;
-        textRef.current.material = textMaterial;
-        textRef.current.position.set(...position);
-        textGeometry.center();
-      }
+      const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+      textMesh.position.set(...position);
+      textGeometry.center();
+      
+      this.add(textMesh);
     });
-  }, [text, color, size, position]);
-
-  return <mesh ref={textRef} />;
-};
+  }
+}
