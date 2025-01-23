@@ -1,10 +1,10 @@
-import VideoUploader from "@/components/VideoUploader";
-import PlatformCard from "@/components/PlatformCard";
+import { VideoUploader } from "@/components/VideoUploader";
+import { PlatformCard } from "@/components/PlatformCard";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import BeatUploader from "@/components/BeatUploader";
+import { BeatUploader } from "@/components/BeatUploader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AudioVisualizer from "@/components/AudioVisualizer";
+import { AudioVisualizer } from "@/components/AudioVisualizer";
 import { CubeCustomization } from "@/components/visualizer/CubeCustomization";
 import { BlogPost } from "@/components/BlogPost";
 import { Events } from "@/components/Events";
@@ -12,6 +12,7 @@ import { useState } from "react";
 import { CubeImageUploader } from "@/components/visualizer/CubeImageUploader";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { APIKeyManager } from "@/components/APIKeyManager";
 
 const Index = () => {
   const [rotationSpeed, setRotationSpeed] = useState(1);
@@ -41,14 +42,15 @@ const Index = () => {
       <Header />
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto space-y-8">
-          <Tabs defaultValue="cube" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 mb-8">
+          <Tabs defaultValue="video" className="w-full">
+            <TabsList className="grid w-full grid-cols-7 mb-8">
               <TabsTrigger value="video">Video Upload</TabsTrigger>
               <TabsTrigger value="beat">Beat Upload</TabsTrigger>
               <TabsTrigger value="cube">3D Visualizer</TabsTrigger>
               <TabsTrigger value="customize">Customize</TabsTrigger>
               <TabsTrigger value="blog">Blog Post</TabsTrigger>
               <TabsTrigger value="events">Events</TabsTrigger>
+              <TabsTrigger value="api">API Keys</TabsTrigger>
             </TabsList>
             
             <TabsContent value="video">
@@ -111,6 +113,18 @@ const Index = () => {
                     onNeonToggle={setNeonEnabled}
                   />
                 </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="api">
+              <div className="space-y-8">
+                <div className="text-center">
+                  <h2 className="text-4xl font-bold mb-4">API Key Management</h2>
+                  <p className="text-muted-foreground">
+                    Manage your API keys for third-party integrations
+                  </p>
+                </div>
+                <APIKeyManager />
               </div>
             </TabsContent>
 
