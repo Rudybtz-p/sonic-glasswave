@@ -1,27 +1,23 @@
 import * as THREE from 'three';
 
 export const createCubeGeometry = () => {
+  console.log('Creating cube geometry with materials');
+  
   const geometry = new THREE.BoxGeometry(2, 2, 2);
-  const material = new THREE.MeshPhongMaterial({
-    color: 0x8B5CF6,
-    transparent: true,
-    opacity: 0.7,
-    side: THREE.DoubleSide,
-    specular: 0xffffff,
-    shininess: 100,
-    reflectivity: 1,
-  });
   
-  const cube = new THREE.Mesh(geometry, material);
+  // Create an array of materials, one for each face
+  const materials = [
+    new THREE.MeshPhongMaterial({ color: 0x00ff00 }), // right
+    new THREE.MeshPhongMaterial({ color: 0xff0000 }), // left
+    new THREE.MeshPhongMaterial({ color: 0x0000ff }), // top
+    new THREE.MeshPhongMaterial({ color: 0xffff00 }), // bottom
+    new THREE.MeshPhongMaterial({ color: 0xff00ff }), // front
+    new THREE.MeshPhongMaterial({ color: 0x00ffff }), // back
+  ];
+
+  // Create mesh with geometry and materials
+  const cube = new THREE.Mesh(geometry, materials);
   
-  // Add neon edges
-  const edges = new THREE.EdgesGeometry(geometry);
-  const lineMaterial = new THREE.LineBasicMaterial({ 
-    color: 0xD946EF,
-    linewidth: 2,
-  });
-  const wireframe = new THREE.LineSegments(edges, lineMaterial);
-  cube.add(wireframe);
-  
+  console.log('Cube created with materials:', materials);
   return cube;
 };

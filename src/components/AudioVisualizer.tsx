@@ -31,14 +31,29 @@ export const AudioVisualizer = () => {
   const previousMousePositionRef = useRef({ x: 0, y: 0 });
 
   const handleImageUpload = (face: string, image: File) => {
+    console.log(`Handling image upload for ${face} face`);
     const reader = new FileReader();
     reader.onload = (e) => {
+      if (!cubeRef.current) {
+        console.error('Cube reference is not available');
+        return;
+      }
+
       const texture = new THREE.TextureLoader().load(e.target?.result as string);
-      const materials = (cubeRef.current?.material as THREE.MeshPhongMaterial[]);
+      const materials = cubeRef.current.material as THREE.MeshPhongMaterial[];
+      
+      if (!Array.isArray(materials)) {
+        console.error('Cube materials are not properly initialized');
+        return;
+      }
+
       const faceIndex = ['right', 'left', 'top', 'bottom', 'front', 'back'].indexOf(face);
-      if (materials && faceIndex !== -1) {
+      if (faceIndex !== -1 && materials[faceIndex]) {
+        console.log(`Updating texture for ${face} face at index ${faceIndex}`);
         materials[faceIndex].map = texture;
-        console.log(`Updated texture for ${face} face`);
+        materials[faceIndex].needsUpdate = true;
+      } else {
+        console.error(`Invalid face ${face} or material not found at index ${faceIndex}`);
       }
     };
     reader.readAsDataURL(image);
