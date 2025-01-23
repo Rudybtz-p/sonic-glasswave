@@ -5,6 +5,7 @@ import { createCubeGeometry } from './visualizer/CubeGeometry';
 import { createCubeText } from './visualizer/CubeText';
 import { setupLights } from './visualizer/Lights';
 import { Controls } from './visualizer/Controls';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 
 export const AudioVisualizer = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -24,7 +25,7 @@ export const AudioVisualizer = () => {
     scene.add(cube);
 
     console.log('Loading font...');
-    new THREE.FontLoader().load(
+    new FontLoader().load(
       'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', 
       (font) => {
         console.log('Font loaded successfully');
