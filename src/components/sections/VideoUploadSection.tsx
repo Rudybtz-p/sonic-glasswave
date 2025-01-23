@@ -17,6 +17,7 @@ export const VideoUploadSection = () => {
       <VideoUploader />
       <PlatformCard
         description={description}
+        onDescriptionChange={setDescription}
         onGenerateAI={handleGenerateAI}
       />
     </div>

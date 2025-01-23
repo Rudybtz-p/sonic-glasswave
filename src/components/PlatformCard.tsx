@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { Textarea } from './ui/textarea';
@@ -11,15 +11,27 @@ import { cn } from '@/lib/utils';
 interface PlatformCardProps {
   description: string;
   onGenerateAI: () => void;
+  onDescriptionChange?: (description: string) => void;
 }
 
 export const PlatformCard: React.FC<PlatformCardProps> = ({
   description,
-  onGenerateAI
+  onGenerateAI,
+  onDescriptionChange
 }) => {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [localDescription, setLocalDescription] = useState(description);
   const [tags, setTags] = useState('');
+
+  useEffect(() => {
+    setLocalDescription(description);
+  }, [description]);
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newDescription = e.target.value;
+    setLocalDescription(newDescription);
+    onDescriptionChange?.(newDescription);
+  };
 
   const platforms = [
     { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-youtube' },
@@ -83,7 +95,7 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
           <Textarea
             placeholder="Enter your description..."
             value={localDescription}
-            onChange={(e) => setLocalDescription(e.target.value)}
+            onChange={handleDescriptionChange}
             className="mb-4 h-32"
           />
         </div>
