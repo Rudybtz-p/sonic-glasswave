@@ -9,7 +9,6 @@ import { CubeCustomization } from "@/components/visualizer/CubeCustomization";
 import { BlogPost } from "@/components/BlogPost";
 import { Events } from "@/components/Events";
 import { useState } from "react";
-import { CubeImageUploader } from "@/components/visualizer/CubeImageUploader";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { APIKeyManager } from "@/components/APIKeyManager";
@@ -24,13 +23,9 @@ const Index = () => {
 
   const handleGenerateAI = () => {
     console.log('Generating AI content');
-  };
-
-  const handleImageUpload = (face: string, file: File) => {
-    console.log(`Uploading image for ${face} face:`, file.name);
     toast({
-      title: "Image Upload",
-      description: `Successfully uploaded image for ${face} face`,
+      title: "AI Generation",
+      description: "Generating content with AI...",
     });
   };
 

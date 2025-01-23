@@ -3,10 +3,12 @@ import { useDropzone } from 'react-dropzone';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
-import { Upload, Video, Youtube, Link as LinkIcon } from 'lucide-react';
+import { Upload, Video, Youtube, Link as LinkIcon, Settings } from 'lucide-react';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Switch } from './ui/switch';
+import { Slider } from './ui/slider';
 
 interface VideoFile extends File {
   preview: string;
@@ -16,8 +18,10 @@ export const VideoUploader = () => {
   const [video, setVideo] = useState<VideoFile | null>(null);
   const [embedUrl, setEmbedUrl] = useState('');
   const [isCompressed, setIsCompressed] = useState(false);
+  const [quality, setQuality] = useState([720]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    console.log("Video file dropped:", acceptedFiles[0]?.name);
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
       if (file.type.startsWith('video/')) {
@@ -40,6 +44,7 @@ export const VideoUploader = () => {
   });
 
   const handleEmbedVideo = () => {
+    console.log("Attempting to embed video from URL:", embedUrl);
     if (!embedUrl) {
       toast.error('Please enter a valid URL');
       return;
@@ -50,6 +55,21 @@ export const VideoUploader = () => {
     } else {
       toast.error('Please enter a valid YouTube or Vimeo URL');
     }
+  };
+
+  const handleProcessVideo = () => {
+    if (!video) return;
+    
+    console.log("Processing video with settings:", {
+      isCompressed,
+      quality: quality[0]
+    });
+
+    toast.success('Video processing started');
+    // Simulate processing time
+    setTimeout(() => {
+      toast.success('Video processed successfully!');
+    }, 2000);
   };
 
   return (
@@ -80,14 +100,35 @@ export const VideoUploader = () => {
 
           {video && (
             <div className="mt-6 space-y-4">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="compress">Compress video</Label>
-                <input
-                  type="checkbox"
-                  id="compress"
-                  checked={isCompressed}
-                  onChange={(e) => setIsCompressed(e.target.checked)}
-                />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Settings className="w-4 h-4" />
+                    <Label htmlFor="compress">Compress video</Label>
+                  </div>
+                  <Switch
+                    id="compress"
+                    checked={isCompressed}
+                    onCheckedChange={setIsCompressed}
+                  />
+                </div>
+
+                {isCompressed && (
+                  <div className="space-y-2">
+                    <Label>Quality (pixels)</Label>
+                    <Slider
+                      value={quality}
+                      onValueChange={setQuality}
+                      min={360}
+                      max={1080}
+                      step={360}
+                      className="w-full"
+                    />
+                    <div className="text-sm text-gray-500 text-center">
+                      {quality}p
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div>
@@ -100,10 +141,16 @@ export const VideoUploader = () => {
               </div>
               
               <div className="flex gap-4">
-                <Button onClick={() => setVideo(null)} variant="outline">
+                <Button 
+                  onClick={() => {
+                    URL.revokeObjectURL(video.preview);
+                    setVideo(null);
+                  }} 
+                  variant="outline"
+                >
                   Remove
                 </Button>
-                <Button>
+                <Button onClick={handleProcessVideo}>
                   <Video className="w-4 h-4 mr-2" />
                   Process Video
                 </Button>
