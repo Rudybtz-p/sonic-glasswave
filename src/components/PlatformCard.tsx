@@ -4,7 +4,7 @@ import { Badge } from './ui/badge';
 import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
 import { Wand2, Youtube, Instagram, Facebook, Share2 } from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
 import { cn } from '@/lib/utils';
 
@@ -17,7 +17,7 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
   description,
   onGenerateAI
 }) => {
-  const [selectedPlatform, setSelectedPlatform] = useState<string>('youtube');
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
 
   const platforms = [
     { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-youtube' },
@@ -25,6 +25,14 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
     { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-facebook' },
     { id: 'tiktok', name: 'TikTok', icon: Share2, color: 'text-tiktok' }
   ];
+
+  const togglePlatform = (platformId: string) => {
+    setSelectedPlatforms(current =>
+      current.includes(platformId)
+        ? current.filter(id => id !== platformId)
+        : [...current, platformId]
+    );
+  };
 
   return (
     <Card className="w-full">
@@ -35,20 +43,16 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
           </CardTitle>
           <Badge
             variant="outline"
-            className={`bg-${selectedPlatform} text-white`}
+            className="bg-primary text-primary-foreground"
           >
-            Ready
+            {selectedPlatforms.length} Selected
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-4">
-          <Label>Select Platform</Label>
-          <RadioGroup
-            value={selectedPlatform}
-            onValueChange={setSelectedPlatform}
-            className="grid grid-cols-2 gap-4"
-          >
+          <Label>Select Platforms</Label>
+          <div className="grid grid-cols-2 gap-4">
             {platforms.map((platform) => {
               const Icon = platform.icon;
               return (
@@ -56,16 +60,20 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
                   key={platform.id}
                   className={cn(
                     'flex items-center space-x-2 rounded-lg border p-4 cursor-pointer hover:bg-accent',
-                    selectedPlatform === platform.id && 'border-primary bg-accent'
+                    selectedPlatforms.includes(platform.id) && 'border-primary bg-accent'
                   )}
+                  onClick={() => togglePlatform(platform.id)}
                 >
-                  <RadioGroupItem value={platform.id} id={platform.id} />
+                  <Checkbox
+                    checked={selectedPlatforms.includes(platform.id)}
+                    onCheckedChange={() => togglePlatform(platform.id)}
+                  />
                   <Icon className={platform.color} />
                   <span>{platform.name}</span>
                 </Label>
               );
             })}
-          </RadioGroup>
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -90,6 +98,7 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
             variant="outline"
             className="w-full"
             onClick={onGenerateAI}
+            disabled={selectedPlatforms.length === 0}
           >
             <Wand2 className="w-4 h-4 mr-2" />
             Generate Description & Tags with AI
@@ -97,6 +106,7 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
           <Button
             variant="outline"
             className="w-full"
+            disabled={selectedPlatforms.length === 0}
           >
             <Wand2 className="w-4 h-4 mr-2" />
             Generate Cover Image with AI
