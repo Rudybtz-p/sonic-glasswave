@@ -13,8 +13,6 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { APIKeyManager } from "@/components/APIKeyManager";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 const Index = () => {
   const [rotationSpeed, setRotationSpeed] = useState(1);
@@ -26,6 +24,7 @@ const Index = () => {
   const [textColor, setTextColor] = useState('#F97316');
   const [displayText, setDisplayText] = useState('');
   const [selectedFont, setSelectedFont] = useState('helvetiker');
+  const [textAnimation, setTextAnimation] = useState('none');
   const { toast } = useToast();
   const [glowEnabled, setGlowEnabled] = useState(false);
 
@@ -60,6 +59,11 @@ const Index = () => {
   const handleTextColorChange = (color: string) => {
     console.log('Text color changed:', color);
     setTextColor(color);
+  };
+
+  const handleAnimationChange = (animation: string) => {
+    console.log('Animation changed:', animation);
+    setTextAnimation(animation);
   };
 
   // For demo purposes, you would typically get this from your auth state
@@ -175,6 +179,7 @@ const Index = () => {
                     onNeonToggle={setNeonEnabled}
                     onSizeChange={handleTextSizeChange}
                     onColorChange={handleTextColorChange}
+                    onAnimationChange={handleAnimationChange}
                   />
                 </div>
               </div>
