@@ -6,6 +6,7 @@ import { Label } from './ui/label';
 import { Music, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { AudioVisualizer } from './AudioVisualizer';
+import { CubeCustomization } from './visualizer/CubeCustomization';
 
 interface BeatUploaderProps {
   isPremium?: boolean;
@@ -15,6 +16,9 @@ export const BeatUploader: React.FC<BeatUploaderProps> = ({ isPremium = false })
   const [beatName, setBeatName] = useState('');
   const [beatFile, setBeatFile] = useState<File | null>(null);
   const [showVisualizer, setShowVisualizer] = useState(false);
+  const [cubeRotationSpeed, setCubeRotationSpeed] = useState(1);
+  const [cubeColor, setCubeColor] = useState('#8B5CF6');
+  const [cubeSize, setCubeSize] = useState(1);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -39,8 +43,15 @@ export const BeatUploader: React.FC<BeatUploaderProps> = ({ isPremium = false })
       toast.error('Please enter a beat name');
       return;
     }
-    // Here you would typically handle the upload to your backend
-    console.log('Uploading beat:', { name: beatName, file: beatFile });
+    console.log('Uploading beat:', { 
+      name: beatName, 
+      file: beatFile,
+      cubeSettings: isPremium ? {
+        rotationSpeed: cubeRotationSpeed,
+        color: cubeColor,
+        size: cubeSize
+      } : undefined
+    });
     toast.success('Beat saved successfully!');
   };
 
@@ -91,6 +102,11 @@ export const BeatUploader: React.FC<BeatUploaderProps> = ({ isPremium = false })
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Customize Your Beat Visualizer</h3>
               <AudioVisualizer />
+              <CubeCustomization
+                onRotationSpeedChange={setCubeRotationSpeed}
+                onColorChange={setCubeColor}
+                onSizeChange={setCubeSize}
+              />
             </div>
           )}
 

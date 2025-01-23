@@ -6,7 +6,17 @@ import { Scene } from './visualizer/Scene';
 import { AudioController } from './visualizer/AudioController';
 import { CubeImageUploader } from './visualizer/CubeImageUploader';
 
-export const AudioVisualizer = () => {
+interface AudioVisualizerProps {
+  rotationSpeed?: number;
+  cubeColor?: string;
+  cubeSize?: number;
+}
+
+export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
+  rotationSpeed = 1,
+  cubeColor = '#8B5CF6',
+  cubeSize = 1
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -26,21 +36,32 @@ export const AudioVisualizer = () => {
     rendererRef.current = renderer;
     cubeRef.current = cube;
 
+    // Update cube properties based on props
+    if (cubeRef.current) {
+      cubeRef.current.scale.set(cubeSize, cubeSize, cubeSize);
+      if (Array.isArray(cubeRef.current.material)) {
+        cubeRef.current.material.forEach(material => {
+          if (material instanceof THREE.MeshPhongMaterial) {
+            material.color.setStyle(cubeColor);
+          }
+        });
+      }
+    }
+
     const animate = () => {
       if (!cube || !scene || !camera || !renderer) return;
 
-      cube.rotation.x += 0.01;
-      cube.rotation.y += 0.01;
+      cube.rotation.x += 0.01 * rotationSpeed;
+      cube.rotation.y += 0.01 * rotationSpeed;
 
       renderer.render(scene, camera);
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
     animate();
-  }, []);
+  }, [rotationSpeed, cubeColor, cubeSize]);
 
   const handleAudioData = useCallback((audioData: Uint8Array) => {
-    // Update particle system with audio data
     if (sceneRef.current) {
       const particles = sceneRef.current.children.find(
         child => child instanceof THREE.Points
