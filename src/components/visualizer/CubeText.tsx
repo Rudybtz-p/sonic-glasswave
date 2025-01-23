@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 
 export const createCubeText = (font: Font, position: THREE.Vector3, rotation: THREE.Euler) => {
