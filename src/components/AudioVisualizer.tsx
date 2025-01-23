@@ -9,15 +9,11 @@ import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Circle, MessageCircle, ThumbsUp, UserPlus, MessageSquarePlus, Share2 } from 'lucide-react';
 import { Button } from './ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { CubeUploader } from './visualizer/CubeUploader';
+import { ParticleSystem } from './visualizer/ParticleSystem';
+import { AudioAnalyzer } from './visualizer/AudioAnalyzer';
 
 export const AudioVisualizer = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,42 +22,25 @@ export const AudioVisualizer = () => {
   const [likes, setLikes] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [newComment, setNewComment] = useState("");
+  
+  const particleSystemRef = useRef<ParticleSystem | null>(null);
+  const audioAnalyzerRef = useRef<AudioAnalyzer | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isDraggingRef = useRef(false);
+  const previousMousePositionRef = useRef({ x: 0, y: 0 });
 
-  useEffect(() => {
-    if (isPlaying) {
-      const interval = setInterval(() => {
-        setComments(prev => [...prev, `Great beat! ${new Date().getSeconds()}`].slice(-3));
-      }, 3000);
-      return () => clearInterval(interval);
-    }
-  }, [isPlaying]);
-
-  // Simulate real-time likes
-  useEffect(() => {
-    if (isPlaying) {
-      const interval = setInterval(() => {
-        setLikes(prev => prev + 1);
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [isPlaying]);
-
-  const handleFollow = () => {
-    setIsFollowing(!isFollowing);
-    console.log('Follow status changed:', !isFollowing);
-  };
-
-  const handleAddComment = () => {
-    if (newComment.trim()) {
-      setComments(prev => [...prev, newComment]);
-      setNewComment("");
-      console.log('New comment added:', newComment);
-    }
-  };
-
-  const handleShare = (platform: string) => {
-    console.log(`Sharing to ${platform}`);
-    // Here you would implement the actual sharing logic for each platform
+  const handleImageUpload = (face: string, image: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const texture = new THREE.TextureLoader().load(e.target?.result as string);
+      const materials = (cube.current?.material as THREE.MeshPhongMaterial[]);
+      const faceIndex = ['right', 'left', 'top', 'bottom', 'front', 'back'].indexOf(face);
+      if (materials && faceIndex !== -1) {
+        materials[faceIndex].map = texture;
+        console.log(`Updated texture for ${face} face`);
+      }
+    };
+    reader.readAsDataURL(image);
   };
 
   useEffect(() => {
@@ -76,6 +55,42 @@ export const AudioVisualizer = () => {
 
     const cube = createCubeGeometry();
     scene.add(cube);
+
+    // Initialize particle system
+    particleSystemRef.current = new ParticleSystem(scene);
+    
+    // Initialize audio analyzer
+    audioAnalyzerRef.current = new AudioAnalyzer();
+    if (audioRef.current) {
+      audioAnalyzerRef.current.connectToAudio(audioRef.current);
+    }
+
+    // Setup mouse controls
+    const handleMouseDown = (e: MouseEvent) => {
+      isDraggingRef.current = true;
+      previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDraggingRef.current) {
+        const deltaMove = {
+          x: e.clientX - previousMousePositionRef.current.x,
+          y: e.clientY - previousMousePositionRef.current.y
+        };
+
+        cube.rotation.y += deltaMove.x * 0.01;
+        cube.rotation.x += deltaMove.y * 0.01;
+      }
+      previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const handleMouseUp = () => {
+      isDraggingRef.current = false;
+    };
+
+    containerRef.current.addEventListener('mousedown', handleMouseDown);
+    containerRef.current.addEventListener('mousemove', handleMouseMove);
+    containerRef.current.addEventListener('mouseup', handleMouseUp);
 
     console.log('Loading font...');
     new FontLoader().load(
@@ -102,32 +117,48 @@ export const AudioVisualizer = () => {
 
     const animate = () => {
       requestAnimationFrame(animate);
-      cube.rotation.x += 0.01;
-      cube.rotation.y += 0.01;
+      
+      if (!isDraggingRef.current) {
+        cube.rotation.x += 0.001;
+        cube.rotation.y += 0.001;
+      }
 
-      const time = Date.now() * 0.001;
-      pointLight1.intensity = 1 + Math.sin(time * 2) * 0.5;
-      pointLight2.intensity = 1 + Math.cos(time * 2) * 0.5;
+      if (audioAnalyzerRef.current && particleSystemRef.current) {
+        const audioData = audioAnalyzerRef.current.getAudioData();
+        particleSystemRef.current.update(audioData);
+      }
 
       renderer.render(scene, camera);
     };
 
     animate();
 
-    const handleResize = () => {
-      if (!containerRef.current) return;
-      camera.aspect = containerRef.current.clientWidth / containerRef.current.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
-    };
-
-    window.addEventListener('resize', handleResize);
-
     return () => {
-      window.removeEventListener('resize', handleResize);
-      containerRef.current?.removeChild(renderer.domElement);
+      particleSystemRef.current?.dispose();
+      audioAnalyzerRef.current?.dispose();
+      containerRef.current?.removeEventListener('mousedown', handleMouseDown);
+      containerRef.current?.removeEventListener('mousemove', handleMouseMove);
+      containerRef.current?.removeEventListener('mouseup', handleMouseUp);
     };
   }, []);
+
+  const handleFollow = () => {
+    setIsFollowing(!isFollowing);
+    console.log('Follow status changed:', !isFollowing);
+  };
+
+  const handleAddComment = () => {
+    if (newComment.trim()) {
+      setComments(prev => [...prev, newComment]);
+      setNewComment("");
+      console.log('New comment added:', newComment);
+    }
+  };
+
+  const handleShare = (platform: string) => {
+    console.log(`Sharing to ${platform}`);
+    // Here you would implement the actual sharing logic for each platform
+  };
 
   return (
     <Card className="bg-gradient-to-br from-black/80 to-purple-900/50 backdrop-blur-sm border-neon-purple/20 relative">
@@ -156,6 +187,7 @@ export const AudioVisualizer = () => {
 
       {/* Gender/Style Tag */}
       <div className="absolute top-4 right-4 z-10">
+        <CubeUploader onImageUpload={handleImageUpload} />
         <span className="bg-neon-purple/20 text-white px-3 py-1 rounded-full text-sm backdrop-blur-sm">
           @electronic/ambient
         </span>
@@ -267,6 +299,7 @@ export const AudioVisualizer = () => {
         </div>
       </div>
 
+      <audio ref={audioRef} src="/path-to-your-audio.mp3" />
       <div ref={containerRef} className="w-full h-[400px] rounded-lg" />
       <Controls isPlaying={isPlaying} onPlayPause={() => setIsPlaying(!isPlaying)} />
     </Card>
