@@ -41,12 +41,12 @@ const Index = () => {
       <Header />
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto space-y-8">
-          <Tabs defaultValue="video" className="w-full">
+          <Tabs defaultValue="cube" className="w-full">
             <TabsList className="grid w-full grid-cols-6 mb-8">
               <TabsTrigger value="video">Video Upload</TabsTrigger>
               <TabsTrigger value="beat">Beat Upload</TabsTrigger>
-              <TabsTrigger value="cube">Cube Visualizer</TabsTrigger>
-              <TabsTrigger value="customize">Customize Cube</TabsTrigger>
+              <TabsTrigger value="cube">3D Visualizer</TabsTrigger>
+              <TabsTrigger value="customize">Customize</TabsTrigger>
               <TabsTrigger value="blog">Blog Post</TabsTrigger>
               <TabsTrigger value="events">Events</TabsTrigger>
             </TabsList>
@@ -84,49 +84,33 @@ const Index = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="cube">
-              <div className="space-y-8">
-                <div className="text-center">
-                  <h2 className="text-4xl font-bold mb-4">Audio Cube Visualizer</h2>
-                  <p className="text-muted-foreground">
-                    Experience your beats in 3D with our interactive cube visualizer
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <Card className="p-6 bg-black/80 backdrop-blur-sm border-neon-purple/20">
-                    <AudioVisualizer
-                      rotationSpeed={rotationSpeed}
-                      cubeColor={cubeColor}
-                      cubeSize={cubeSize}
-                      particleEnabled={particleEnabled}
-                      neonEnabled={neonEnabled}
-                    />
-                  </Card>
-                  <CubeImageUploader 
-                    cube={null} 
-                    onImageUpload={handleImageUpload}
-                  />
-                </div>
+            <TabsContent value="cube" className="space-y-8">
+              <div className="text-center">
+                <h2 className="text-4xl font-bold mb-4">3D Audio Visualizer</h2>
+                <p className="text-muted-foreground">
+                  Experience your beats in 3D with our interactive cube visualizer
+                </p>
               </div>
-            </TabsContent>
-
-            <TabsContent value="customize">
-              <div className="space-y-8">
-                <div className="text-center">
-                  <h2 className="text-4xl font-bold mb-4">Customize Your Cube</h2>
-                  <p className="text-muted-foreground">
-                    Personalize your beat visualizer with custom colors and effects
-                  </p>
-                </div>
-                
-                <CubeCustomization
-                  onRotationSpeedChange={setRotationSpeed}
-                  onColorChange={setCubeColor}
-                  onSizeChange={setCubeSize}
-                  onParticleToggle={setParticleEnabled}
-                  onNeonToggle={setNeonEnabled}
-                />
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <Card className="p-6 bg-black/80 backdrop-blur-sm border-neon-purple/20 relative min-h-[400px]">
+                  <AudioVisualizer
+                    rotationSpeed={rotationSpeed}
+                    cubeColor={cubeColor}
+                    cubeSize={cubeSize}
+                    particleEnabled={particleEnabled}
+                    neonEnabled={neonEnabled}
+                  />
+                </Card>
+                <Card className="p-6 bg-black/80 backdrop-blur-sm border-neon-purple/20">
+                  <CubeCustomization
+                    onRotationSpeedChange={setRotationSpeed}
+                    onColorChange={setCubeColor}
+                    onSizeChange={setCubeSize}
+                    onParticleToggle={setParticleEnabled}
+                    onNeonToggle={setNeonEnabled}
+                  />
+                </Card>
               </div>
             </TabsContent>
 

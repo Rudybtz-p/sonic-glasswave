@@ -21,13 +21,19 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
   neonEnabled,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cubeRef = useRef<THREE.Mesh | null>(null);
   const audioAnalyzerRef = useRef<AudioAnalyzer | null>(null);
   const particleSystemRef = useRef<ParticleSystem | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
+    console.log('Initializing Three.js scene');
+    
     const scene = new THREE.Scene();
+    sceneRef.current = scene;
+    
     const camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
@@ -40,6 +46,7 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
     containerRef.current.appendChild(renderer.domElement);
 
     const cube = createCubeGeometry();
+    cubeRef.current = cube;
     scene.add(cube);
 
     setupLights(scene);
@@ -51,13 +58,18 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
       particleSystemRef.current = new ParticleSystem(scene);
     }
 
+    camera.position.z = 5;
+
     const animate = () => {
       requestAnimationFrame(animate);
-      cube.rotation.x += rotationSpeed * 0.01;
-      cube.rotation.y += rotationSpeed * 0.01;
+      
+      if (cubeRef.current) {
+        cubeRef.current.rotation.x += rotationSpeed * 0.01;
+        cubeRef.current.rotation.y += rotationSpeed * 0.01;
+      }
 
-      if (particleSystemRef.current) {
-        const audioData = audioAnalyzerRef.current!.getAudioData();
+      if (particleSystemRef.current && audioAnalyzerRef.current) {
+        const audioData = audioAnalyzerRef.current.getAudioData();
         particleSystemRef.current.update(audioData);
       }
 
@@ -67,6 +79,7 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
     animate();
 
     return () => {
+      console.log('Cleaning up Three.js scene');
       if (containerRef.current) {
         containerRef.current.removeChild(renderer.domElement);
       }
@@ -75,8 +88,37 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
     };
   }, [rotationSpeed, particleEnabled]);
 
+  // Update cube properties when they change
+  useEffect(() => {
+    if (cubeRef.current) {
+      console.log('Updating cube properties:', { cubeColor, cubeSize });
+      
+      // Update cube color
+      if (Array.isArray(cubeRef.current.material)) {
+        cubeRef.current.material.forEach(material => {
+          material.color.set(cubeColor);
+        });
+      }
+      
+      // Update cube size
+      cubeRef.current.scale.set(cubeSize, cubeSize, cubeSize);
+    }
+  }, [cubeColor, cubeSize]);
+
+  // Update particle system when enabled/disabled
+  useEffect(() => {
+    if (!sceneRef.current) return;
+    
+    if (particleEnabled && !particleSystemRef.current) {
+      particleSystemRef.current = new ParticleSystem(sceneRef.current);
+    } else if (!particleEnabled && particleSystemRef.current) {
+      particleSystemRef.current.dispose();
+      particleSystemRef.current = null;
+    }
+  }, [particleEnabled]);
+
   return (
-    <div ref={containerRef} className="w-full h-full" />
+    <div ref={containerRef} className="w-full h-full min-h-[400px]" />
   );
 };
 
