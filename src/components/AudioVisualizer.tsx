@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { Button } from './ui/button';
-import { Play, Pause, SkipBack, SkipForward } from 'lucide-react';
+import { Play, Pause } from 'lucide-react';
 import { Card } from './ui/card';
 
 export const AudioVisualizer = () => {
@@ -13,7 +13,6 @@ export const AudioVisualizer = () => {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Three.js setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, containerRef.current.clientWidth / containerRef.current.clientHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -54,18 +53,22 @@ export const AudioVisualizer = () => {
           const textGeometry = new TextGeometry('CUBEATZ', {
             font: font,
             size: 0.2,
-            height: 0.02, // Thinner depth
+            height: 0.02,
             bevelEnabled: true,
             bevelThickness: 0.01,
             bevelSize: 0.005,
             bevelOffset: 0,
             bevelSegments: 1
           });
+          
+          // Create the main text material with bold appearance
           const textMaterial = new THREE.MeshPhongMaterial({ 
             color: 0xF97316,
             emissive: 0xF97316,
             emissiveIntensity: 0.5,
           });
+
+          // Create a slightly larger stroke geometry
           const strokeMaterial = new THREE.LineBasicMaterial({
             color: 0xFFFFFF,
             linewidth: 1
@@ -93,6 +96,14 @@ export const AudioVisualizer = () => {
           new THREE.Vector3(1.1, 0, 0.5),
           new THREE.Euler(0, Math.PI / 2, 0)
         );
+        createText(
+          new THREE.Vector3(0, 1.1, 0.5),
+          new THREE.Euler(-Math.PI / 2, 0, 0)
+        );
+        createText(
+          new THREE.Vector3(-0.5, -1.1, 0),
+          new THREE.Euler(Math.PI / 2, 0, 0)
+        );
       },
       (xhr) => {
         console.log((xhr.loaded / xhr.total * 100) + '% loaded');
@@ -119,18 +130,13 @@ export const AudioVisualizer = () => {
     pointLight2.position.set(-2, -2, -2);
     scene.add(pointLight2);
 
-    // Position camera
     camera.position.z = 5;
 
-    // Animation
     const animate = () => {
       requestAnimationFrame(animate);
-      
-      // Rotate cube
       cube.rotation.x += 0.01;
       cube.rotation.y += 0.01;
 
-      // Pulse neon effect
       const time = Date.now() * 0.001;
       pointLight1.intensity = 1 + Math.sin(time * 2) * 0.5;
       pointLight2.intensity = 1 + Math.cos(time * 2) * 0.5;
@@ -140,7 +146,6 @@ export const AudioVisualizer = () => {
 
     animate();
 
-    // Handle window resize
     const handleResize = () => {
       if (!containerRef.current) return;
       camera.aspect = containerRef.current.clientWidth / containerRef.current.clientHeight;
@@ -157,20 +162,13 @@ export const AudioVisualizer = () => {
   }, []);
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-black/80 to-purple-900/50 backdrop-blur-sm border-neon-purple/20">
+    <Card className="bg-gradient-to-br from-black/80 to-purple-900/50 backdrop-blur-sm border-neon-purple/20">
       <div 
         ref={containerRef} 
         className="w-full h-[400px] rounded-lg"
       />
       
-      <div className="flex justify-center items-center gap-4">
-        <Button 
-          variant="ghost" 
-          size="icon"
-          className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
-        >
-          <SkipBack className="h-6 w-6" />
-        </Button>
+      <div className="flex justify-center items-center gap-4 p-4">
         <Button 
           variant="ghost" 
           size="icon"
@@ -182,13 +180,6 @@ export const AudioVisualizer = () => {
           ) : (
             <Play className="h-6 w-6" />
           )}
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
-        >
-          <SkipForward className="h-6 w-6" />
         </Button>
       </div>
     </Card>

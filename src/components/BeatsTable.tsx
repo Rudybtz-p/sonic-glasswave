@@ -32,7 +32,7 @@ const SAMPLE_BEATS = [
 
 export const BeatsTable = () => {
   return (
-    <div className="rounded-lg border border-neon-purple/20 backdrop-blur-sm overflow-hidden">
+    <div className="rounded-lg border border-neon-purple/20 backdrop-blur-sm overflow-hidden -mt-4">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-neon-purple/5">
