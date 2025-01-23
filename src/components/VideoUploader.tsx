@@ -9,7 +9,7 @@ interface VideoFile extends File {
   preview: string;
 }
 
-export const VideoUploader = () => {
+const VideoUploader = () => {
   const [video, setVideo] = useState<VideoFile | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -75,3 +75,5 @@ export const VideoUploader = () => {
     </Card>
   );
 };
+
+export default VideoUploader;

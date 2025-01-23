@@ -13,7 +13,7 @@ interface PlatformCardProps {
   onGenerateAI: () => void;
 }
 
-export const PlatformCard: React.FC<PlatformCardProps> = ({
+const PlatformCard: React.FC<PlatformCardProps> = ({
   description,
   onGenerateAI
 }) => {
@@ -116,3 +116,5 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
     </Card>
   );
 };
+
+export default PlatformCard;

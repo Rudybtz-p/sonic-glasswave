@@ -21,7 +21,7 @@ const Beats = () => {
           <p className="text-muted-foreground">
             Share your beats with the world
           </p>
-          <BeatUploader />
+          <BeatUploader isPremium={true} />
           <AudioVisualizer
             rotationSpeed={rotationSpeed}
             cubeColor={cubeColor}
