@@ -1,7 +1,7 @@
 import React from "react";
 import { useState } from "react";
-import { BeatUploader } from "@/components/BeatUploader";
-import { AudioVisualizer } from "@/components/AudioVisualizer";
+import BeatUploader from "@/components/BeatUploader";
+import AudioVisualizer from "@/components/AudioVisualizer";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
