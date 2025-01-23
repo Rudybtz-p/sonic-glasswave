@@ -13,6 +13,7 @@ interface Scene3DProps {
   audioData: Uint8Array | null;
   particleEnabled: boolean;
   neonEnabled: boolean;
+  onSceneReady?: (scene: THREE.Scene) => void;
 }
 
 export const Scene3D: React.FC<Scene3DProps> = ({
@@ -22,7 +23,8 @@ export const Scene3D: React.FC<Scene3DProps> = ({
   displayText,
   audioData,
   particleEnabled,
-  neonEnabled
+  neonEnabled,
+  onSceneReady
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -71,6 +73,11 @@ export const Scene3D: React.FC<Scene3DProps> = ({
 
     camera.position.z = 5;
 
+    // Call onSceneReady callback if provided
+    if (onSceneReady) {
+      onSceneReady(scene);
+    }
+
     const animate = () => {
       requestAnimationFrame(animate);
       
@@ -109,7 +116,7 @@ export const Scene3D: React.FC<Scene3DProps> = ({
         particleSystemRef.current.dispose();
       }
     };
-  }, [rotationSpeed, displayText, cubeColor, particleEnabled]);
+  }, [rotationSpeed, displayText, cubeColor, particleEnabled, onSceneReady]);
 
   useEffect(() => {
     if (cubeRef.current) {
