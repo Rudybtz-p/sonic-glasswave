@@ -15,7 +15,7 @@ interface BeatMetadata {
   key: string;
 }
 
-const BeatUploader = ({ isPremium = false }) => {
+export const BeatUploader = ({ isPremium = false }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [metadata, setMetadata] = useState<BeatMetadata>({
@@ -185,5 +185,3 @@ const BeatUploader = ({ isPremium = false }) => {
     </div>
   );
 };
-
-export default BeatUploader;
