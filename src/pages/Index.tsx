@@ -1,6 +1,6 @@
 import { VideoUploader } from "@/components/VideoUploader";
 import { PlatformCard } from "@/components/PlatformCard";
-import { Youtube, Instagram, Facebook, BrandTiktok } from "lucide-react";
+import { Youtube, Instagram, Facebook, TiktokIcon } from "lucide-react";
 
 const Index = () => {
   const handleGenerateAI = (platform: string) => {
@@ -44,7 +44,7 @@ const Index = () => {
           <PlatformCard
             platform="tiktok"
             title="TikTok"
-            icon={<BrandTiktok className="text-tiktok" />}
+            icon={<TiktokIcon className="text-tiktok" />}
             description=""
             onGenerateAI={() => handleGenerateAI('tiktok')}
           />
