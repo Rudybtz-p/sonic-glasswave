@@ -4,11 +4,14 @@ import { useState } from "react";
 import { VisualizerTabs } from "@/components/sections/VisualizerTabs";
 
 const Index = () => {
+  // State management for visualizer settings
   const [rotationSpeed, setRotationSpeed] = useState(1);
   const [cubeColor, setCubeColor] = useState('#8B5CF6');
   const [cubeSize, setCubeSize] = useState(1);
   const [particleEnabled, setParticleEnabled] = useState(true);
   const [neonEnabled, setNeonEnabled] = useState(true);
+  
+  // State management for text settings
   const [textSize, setTextSize] = useState(1);
   const [textColor, setTextColor] = useState('#F97316');
   const [displayText, setDisplayText] = useState('');
