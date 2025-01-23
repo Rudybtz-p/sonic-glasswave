@@ -29,6 +29,7 @@ export const Scene3D: React.FC<Scene3DProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cubeRef = useRef<THREE.Mesh | null>(null);
+  const textRef = useRef<Text3D | null>(null);
   const particleSystemRef = useRef<ParticleSystem | null>(null);
 
   useEffect(() => {
@@ -64,6 +65,7 @@ export const Scene3D: React.FC<Scene3DProps> = ({
         size: 0.5,
         position: [0, 2, 0]
       });
+      textRef.current = text3D;
       scene.add(text3D);
     }
 
@@ -73,7 +75,6 @@ export const Scene3D: React.FC<Scene3DProps> = ({
 
     camera.position.z = 5;
 
-    // Call onSceneReady callback if provided
     if (onSceneReady) {
       onSceneReady(scene);
     }
@@ -88,6 +89,13 @@ export const Scene3D: React.FC<Scene3DProps> = ({
 
       if (particleSystemRef.current && audioData) {
         particleSystemRef.current.update(audioData);
+      }
+
+      if (textRef.current && audioData) {
+        // Update text based on audio data
+        const bassFrequency = audioData[0] || 0;
+        const scale = 1 + (bassFrequency / 255) * 0.2;
+        textRef.current.scale.set(scale, scale, scale);
       }
 
       renderer.render(scene, camera);
