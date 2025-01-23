@@ -56,6 +56,9 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
         cubeSize={cubeSize}
         displayText={displayText}
         onSceneReady={handleSceneReady}
+        audioData={audioData}
+        particleEnabled={particleEnabled}
+        neonEnabled={neonEnabled}
       />
       <FrequencyBars audioData={audioData} />
     </div>
