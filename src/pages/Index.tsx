@@ -4,7 +4,9 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BeatUploader } from "@/components/BeatUploader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import AudioVisualizer from "@/components/AudioVisualizer";
+
 import { CubeCustomization } from "@/components/visualizer/CubeCustomization";
 import { BlogPost } from "@/components/BlogPost";
 import { Events } from "@/components/Events";
@@ -146,3 +148,4 @@ const Index = () => {
 };
 
 export default Index;
+

@@ -20,7 +20,7 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
   particleEnabled,
   neonEnabled,
 }) => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const audioAnalyzerRef = useRef<AudioAnalyzer | null>(null);
   const particleSystemRef = useRef<ParticleSystem | null>(null);
 
@@ -28,13 +28,20 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
     if (!containerRef.current) return;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+
     renderer.setSize(window.innerWidth, window.innerHeight);
     containerRef.current.appendChild(renderer.domElement);
 
     const cube = createCubeGeometry();
     scene.add(cube);
+
     setupLights(scene);
 
     audioAnalyzerRef.current = new AudioAnalyzer();
@@ -50,7 +57,7 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
       cube.rotation.y += rotationSpeed * 0.01;
 
       if (particleSystemRef.current) {
-        const audioData = audioAnalyzerRef.current?.getAudioData();
+        const audioData = audioAnalyzerRef.current!.getAudioData();
         particleSystemRef.current.update(audioData);
       }
 
@@ -68,7 +75,9 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
     };
   }, [rotationSpeed, particleEnabled]);
 
-  return <div ref={containerRef} className="w-full h-full" />;
+  return (
+    <div ref={containerRef} className="w-full h-full" />
+  );
 };
 
 export default AudioVisualizer;
