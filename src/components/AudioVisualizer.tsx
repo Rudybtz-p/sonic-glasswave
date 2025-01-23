@@ -7,8 +7,17 @@ import { setupLights } from './visualizer/Lights';
 import { Controls } from './visualizer/Controls';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Circle, MessageCircle, ThumbsUp, UserPlus } from 'lucide-react';
+import { Circle, MessageCircle, ThumbsUp, UserPlus, MessageSquarePlus } from 'lucide-react';
 import { Button } from './ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 export const AudioVisualizer = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -16,6 +25,7 @@ export const AudioVisualizer = () => {
   const [comments, setComments] = useState<string[]>([]);
   const [likes, setLikes] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [newComment, setNewComment] = useState("");
 
   useEffect(() => {
     if (isPlaying) {
@@ -35,6 +45,19 @@ export const AudioVisualizer = () => {
       return () => clearInterval(interval);
     }
   }, [isPlaying]);
+
+  const handleFollow = () => {
+    setIsFollowing(!isFollowing);
+    console.log('Follow status changed:', !isFollowing);
+  };
+
+  const handleAddComment = () => {
+    if (newComment.trim()) {
+      setComments(prev => [...prev, newComment]);
+      setNewComment("");
+      console.log('New comment added:', newComment);
+    }
+  };
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -101,11 +124,6 @@ export const AudioVisualizer = () => {
     };
   }, []);
 
-  const handleFollow = () => {
-    setIsFollowing(!isFollowing);
-    console.log('Follow status changed:', !isFollowing);
-  };
-
   return (
     <Card className="bg-gradient-to-br from-black/80 to-purple-900/50 backdrop-blur-sm border-neon-purple/20 relative">
       {/* User Profile */}
@@ -149,6 +167,43 @@ export const AudioVisualizer = () => {
             {comment}
           </div>
         ))}
+      </div>
+
+      {/* Add Comment Button */}
+      <div className="absolute bottom-4 left-4 z-10">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="icon"
+              className="bg-neon-purple/20 border-neon-purple/50 hover:bg-neon-purple/30"
+            >
+              <MessageSquarePlus className="h-4 w-4 text-white" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-black/90 border-neon-purple/20 backdrop-blur-sm text-white">
+            <DialogHeader>
+              <DialogTitle>Add a Comment</DialogTitle>
+              <DialogDescription className="text-gray-400">
+                Share your thoughts about this track
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Write your comment..."
+                className="bg-black/50 border-neon-purple/30 text-white placeholder:text-gray-500"
+              />
+              <Button 
+                onClick={handleAddComment}
+                className="w-full bg-neon-purple hover:bg-neon-pink transition-colors duration-300"
+              >
+                Post Comment
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Likes Section */}
