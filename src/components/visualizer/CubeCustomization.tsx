@@ -1,7 +1,6 @@
 import React from 'react';
 import { Slider } from '../ui/slider';
 import { Label } from '../ui/label';
-import { ColorPicker } from '../ui/color-picker';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Settings } from 'lucide-react';
 
