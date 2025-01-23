@@ -7,7 +7,7 @@ export const Header = () => {
     <header className="border-b">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold">Social Media Uploader</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-neon-purple to-neon-pink bg-clip-text text-transparent">Cubeatz</h1>
         </div>
         <div className="flex items-center space-x-2">
           <AuthModal />
