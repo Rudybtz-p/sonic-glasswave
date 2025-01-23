@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
-import { Button } from './ui/button';
-import { Play, Pause } from 'lucide-react';
 import { Card } from './ui/card';
+import { createCubeGeometry } from './visualizer/CubeGeometry';
+import { createCubeText } from './visualizer/CubeText';
+import { setupLights } from './visualizer/Lights';
+import { Controls } from './visualizer/Controls';
 
 export const AudioVisualizer = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -20,90 +21,40 @@ export const AudioVisualizer = () => {
     renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
     containerRef.current.appendChild(renderer.domElement);
 
-    // Create cube with glass effect
-    const geometry = new THREE.BoxGeometry(2, 2, 2);
-    const material = new THREE.MeshPhongMaterial({
-      color: 0x8B5CF6,
-      transparent: true,
-      opacity: 0.7,
-      side: THREE.DoubleSide,
-      specular: 0xffffff,
-      shininess: 100,
-      reflectivity: 1,
-    });
-    const cube = new THREE.Mesh(geometry, material);
+    const cube = createCubeGeometry();
     scene.add(cube);
 
-    // Add neon edges
-    const edges = new THREE.EdgesGeometry(geometry);
-    const lineMaterial = new THREE.LineBasicMaterial({ 
-      color: 0xD946EF,
-      linewidth: 2,
-    });
-    const wireframe = new THREE.LineSegments(edges, lineMaterial);
-    cube.add(wireframe);
-
-    // Load font and create text for multiple faces
     const fontLoader = new FontLoader();
     console.log('Loading font...');
     fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', 
       (font) => {
         console.log('Font loaded successfully');
-        const createText = (position: THREE.Vector3, rotation: THREE.Euler) => {
-          const textGeometry = new TextGeometry('CUBEATZ', {
-            font: font,
-            size: 0.2,
-            height: 0.02,
-            bevelEnabled: true,
-            bevelThickness: 0.01,
-            bevelSize: 0.005,
-            bevelOffset: 0,
-            bevelSegments: 1
-          });
-          
-          // Create the main text material with bold appearance
-          const textMaterial = new THREE.MeshPhongMaterial({ 
-            color: 0xF97316,
-            emissive: 0xF97316,
-            emissiveIntensity: 0.5,
-          });
+        
+        // Create text for different faces
+        const positions = [
+          {
+            position: new THREE.Vector3(-0.5, 0, 1.1),
+            rotation: new THREE.Euler(0, 0, 0)
+          },
+          {
+            position: new THREE.Vector3(1.1, 0, 0.5),
+            rotation: new THREE.Euler(0, Math.PI / 2, 0)
+          },
+          {
+            position: new THREE.Vector3(0, 1.1, 0.5),
+            rotation: new THREE.Euler(-Math.PI / 2, 0, 0)
+          },
+          {
+            position: new THREE.Vector3(-0.5, -1.1, 0),
+            rotation: new THREE.Euler(Math.PI / 2, 0, 0)
+          }
+        ];
 
-          // Create a slightly larger stroke geometry
-          const strokeMaterial = new THREE.LineBasicMaterial({
-            color: 0xFFFFFF,
-            linewidth: 1
-          });
-          
-          const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-          const strokeGeometry = new THREE.EdgesGeometry(textGeometry);
-          const strokeMesh = new THREE.LineSegments(strokeGeometry, strokeMaterial);
-          
-          textMesh.position.copy(position);
-          textMesh.rotation.copy(rotation);
-          strokeMesh.position.copy(position);
-          strokeMesh.rotation.copy(rotation);
-          
+        positions.forEach(({ position, rotation }) => {
+          const { textMesh, strokeMesh } = createCubeText(font, position, rotation);
           cube.add(textMesh);
           cube.add(strokeMesh);
-        };
-
-        // Create text for different faces
-        createText(
-          new THREE.Vector3(-0.5, 0, 1.1),
-          new THREE.Euler(0, 0, 0)
-        );
-        createText(
-          new THREE.Vector3(1.1, 0, 0.5),
-          new THREE.Euler(0, Math.PI / 2, 0)
-        );
-        createText(
-          new THREE.Vector3(0, 1.1, 0.5),
-          new THREE.Euler(-Math.PI / 2, 0, 0)
-        );
-        createText(
-          new THREE.Vector3(-0.5, -1.1, 0),
-          new THREE.Euler(Math.PI / 2, 0, 0)
-        );
+        });
       },
       (xhr) => {
         console.log((xhr.loaded / xhr.total * 100) + '% loaded');
@@ -113,23 +64,7 @@ export const AudioVisualizer = () => {
       }
     );
 
-    // Add lights
-    const ambientLight = new THREE.AmbientLight(0x404040);
-    scene.add(ambientLight);
-
-    const directionalLight = new THREE.DirectionalLight(0xD946EF, 1);
-    directionalLight.position.set(5, 5, 5);
-    scene.add(directionalLight);
-
-    // Add point lights for neon effect
-    const pointLight1 = new THREE.PointLight(0x8B5CF6, 1, 10);
-    pointLight1.position.set(2, 2, 2);
-    scene.add(pointLight1);
-
-    const pointLight2 = new THREE.PointLight(0xD946EF, 1, 10);
-    pointLight2.position.set(-2, -2, -2);
-    scene.add(pointLight2);
-
+    const { pointLight1, pointLight2 } = setupLights(scene);
     camera.position.z = 5;
 
     const animate = () => {
@@ -167,21 +102,10 @@ export const AudioVisualizer = () => {
         ref={containerRef} 
         className="w-full h-[400px] rounded-lg"
       />
-      
-      <div className="flex justify-center items-center gap-4 p-4">
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => setIsPlaying(!isPlaying)}
-          className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
-        >
-          {isPlaying ? (
-            <Pause className="h-6 w-6" />
-          ) : (
-            <Play className="h-6 w-6" />
-          )}
-        </Button>
-      </div>
+      <Controls 
+        isPlaying={isPlaying}
+        onPlayPause={() => setIsPlaying(!isPlaying)}
+      />
     </Card>
   );
 };
