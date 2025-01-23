@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { Button } from './ui/button';
 import { Play, Pause, SkipBack, SkipForward, List, Upload } from 'lucide-react';
 import { Card } from './ui/card';
@@ -46,21 +46,34 @@ export const AudioVisualizer = () => {
 
     // Load font and create text
     const fontLoader = new FontLoader();
-    fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
-      const textGeometry = new TextGeometry('CUBEATZ', {
-        font: font,
-        size: 0.2,
-        height: 0.05,
-      });
-      const textMaterial = new THREE.MeshPhongMaterial({ 
-        color: 0xF97316,
-        emissive: 0xF97316,
-        emissiveIntensity: 0.5,
-      });
-      const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-      textMesh.position.set(-0.5, 0, 1.1);
-      cube.add(textMesh);
-    });
+    console.log('Loading font...');
+    fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', 
+      // onLoad callback
+      (font) => {
+        console.log('Font loaded successfully');
+        const textGeometry = new TextGeometry('CUBEATZ', {
+          font: font,
+          size: 0.2,
+          height: 0.05,
+        });
+        const textMaterial = new THREE.MeshPhongMaterial({ 
+          color: 0xF97316,
+          emissive: 0xF97316,
+          emissiveIntensity: 0.5,
+        });
+        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+        textMesh.position.set(-0.5, 0, 1.1);
+        cube.add(textMesh);
+      },
+      // onProgress callback
+      (xhr) => {
+        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+      },
+      // onError callback
+      (err) => {
+        console.error('An error occurred loading the font:', err);
+      }
+    );
 
     // Add lights
     const ambientLight = new THREE.AmbientLight(0x404040);
