@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Music, Upload, Waveform } from "lucide-react";
+import { Music, Upload, Volume2 } from "lucide-react";
 import AudioVisualizer from "./AudioVisualizer";
 
 interface BeatMetadata {
@@ -158,7 +158,7 @@ const BeatUploader = ({ isPremium = false }) => {
                 variant="outline"
                 className="w-full"
               >
-                <Waveform className="w-4 h-4 mr-2" />
+                <Volume2 className="w-4 h-4 mr-2" />
                 {isPlaying ? 'Stop Preview' : 'Preview Beat'}
               </Button>
 
