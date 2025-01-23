@@ -19,16 +19,42 @@ export const AudioVisualizer = () => {
     renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
     containerRef.current.appendChild(renderer.domElement);
 
-    // Create cube
+    // Create cube with glass effect
     const geometry = new THREE.BoxGeometry(2, 2, 2);
     const material = new THREE.MeshPhongMaterial({
       color: 0x8B5CF6,
       transparent: true,
       opacity: 0.7,
       side: THREE.DoubleSide,
+      specular: 0xffffff,
+      shininess: 100,
+      reflectivity: 1,
     });
     const cube = new THREE.Mesh(geometry, material);
     scene.add(cube);
+
+    // Add neon edges
+    const edges = new THREE.EdgesGeometry(geometry);
+    const lineMaterial = new THREE.LineBasicMaterial({ 
+      color: 0xD946EF,
+      linewidth: 2,
+    });
+    const wireframe = new THREE.LineSegments(edges, lineMaterial);
+    cube.add(wireframe);
+
+    // Add text on cube faces
+    const textGeometry = new THREE.TextGeometry('CUBEATZ', {
+      size: 0.2,
+      height: 0.05,
+    });
+    const textMaterial = new THREE.MeshPhongMaterial({ 
+      color: 0xF97316,
+      emissive: 0xF97316,
+      emissiveIntensity: 0.5,
+    });
+    const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+    textMesh.position.set(-0.5, 0, 1.1);
+    cube.add(textMesh);
 
     // Add lights
     const ambientLight = new THREE.AmbientLight(0x404040);
@@ -38,14 +64,31 @@ export const AudioVisualizer = () => {
     directionalLight.position.set(5, 5, 5);
     scene.add(directionalLight);
 
+    // Add point lights for neon effect
+    const pointLight1 = new THREE.PointLight(0x8B5CF6, 1, 10);
+    pointLight1.position.set(2, 2, 2);
+    scene.add(pointLight1);
+
+    const pointLight2 = new THREE.PointLight(0xD946EF, 1, 10);
+    pointLight2.position.set(-2, -2, -2);
+    scene.add(pointLight2);
+
     // Position camera
     camera.position.z = 5;
 
     // Animation
     const animate = () => {
       requestAnimationFrame(animate);
+      
+      // Rotate cube
       cube.rotation.x += 0.01;
       cube.rotation.y += 0.01;
+
+      // Pulse neon effect
+      const time = Date.now() * 0.001;
+      pointLight1.intensity = 1 + Math.sin(time * 2) * 0.5;
+      pointLight2.intensity = 1 + Math.cos(time * 2) * 0.5;
+
       renderer.render(scene, camera);
     };
 
@@ -68,20 +111,25 @@ export const AudioVisualizer = () => {
   }, []);
 
   return (
-    <Card className="p-6 space-y-6">
+    <Card className="p-6 space-y-6 bg-gradient-to-br from-black/80 to-purple-900/50 backdrop-blur-sm border-neon-purple/20">
       <div 
         ref={containerRef} 
-        className="w-full h-[400px] bg-gradient-to-br from-[#1A1F2C] to-[#403E43] rounded-lg"
+        className="w-full h-[400px] rounded-lg"
       />
       
       <div className="flex justify-center items-center gap-4">
-        <Button variant="ghost" size="icon">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
+        >
           <SkipBack className="h-6 w-6" />
         </Button>
         <Button 
           variant="ghost" 
           size="icon"
           onClick={() => setIsPlaying(!isPlaying)}
+          className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
         >
           {isPlaying ? (
             <Pause className="h-6 w-6" />
@@ -89,13 +137,25 @@ export const AudioVisualizer = () => {
             <Play className="h-6 w-6" />
           )}
         </Button>
-        <Button variant="ghost" size="icon">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
+        >
           <SkipForward className="h-6 w-6" />
         </Button>
-        <Button variant="ghost" size="icon">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
+        >
           <List className="h-6 w-6" />
         </Button>
-        <Button variant="ghost" size="icon">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
+        >
           <Upload className="h-6 w-6" />
         </Button>
       </div>
