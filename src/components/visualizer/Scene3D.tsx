@@ -3,13 +3,16 @@ import * as THREE from 'three';
 import { createCubeGeometry } from './CubeGeometry';
 import { setupLights } from './Lights';
 import { Text3D } from './Text3D';
+import { ParticleSystem } from './ParticleSystem';
 
 interface Scene3DProps {
   rotationSpeed: number;
   cubeColor: string;
   cubeSize: number;
   displayText?: string;
-  onSceneReady: (scene: THREE.Scene) => void;
+  audioData: Uint8Array | null;
+  particleEnabled: boolean;
+  neonEnabled: boolean;
 }
 
 export const Scene3D: React.FC<Scene3DProps> = ({
@@ -17,10 +20,14 @@ export const Scene3D: React.FC<Scene3DProps> = ({
   cubeColor,
   cubeSize,
   displayText,
-  onSceneReady
+  audioData,
+  particleEnabled,
+  neonEnabled
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const sceneRef = useRef<THREE.Scene | null>(null);
   const cubeRef = useRef<THREE.Mesh | null>(null);
+  const particleSystemRef = useRef<ParticleSystem | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -28,6 +35,8 @@ export const Scene3D: React.FC<Scene3DProps> = ({
     console.log('Initializing Three.js scene with enhanced features');
     
     const scene = new THREE.Scene();
+    sceneRef.current = scene;
+    
     const camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
@@ -56,9 +65,11 @@ export const Scene3D: React.FC<Scene3DProps> = ({
       scene.add(text3D);
     }
 
-    camera.position.z = 5;
+    if (particleEnabled) {
+      particleSystemRef.current = new ParticleSystem(scene);
+    }
 
-    onSceneReady(scene);
+    camera.position.z = 5;
 
     const animate = () => {
       requestAnimationFrame(animate);
@@ -66,6 +77,10 @@ export const Scene3D: React.FC<Scene3DProps> = ({
       if (cubeRef.current) {
         cubeRef.current.rotation.x += rotationSpeed * 0.01;
         cubeRef.current.rotation.y += rotationSpeed * 0.01;
+      }
+
+      if (particleSystemRef.current && audioData) {
+        particleSystemRef.current.update(audioData);
       }
 
       renderer.render(scene, camera);
@@ -90,8 +105,11 @@ export const Scene3D: React.FC<Scene3DProps> = ({
       if (containerRef.current) {
         containerRef.current.removeChild(renderer.domElement);
       }
+      if (particleSystemRef.current) {
+        particleSystemRef.current.dispose();
+      }
     };
-  }, [rotationSpeed, displayText, cubeColor, onSceneReady]);
+  }, [rotationSpeed, displayText, cubeColor, particleEnabled]);
 
   useEffect(() => {
     if (cubeRef.current) {
@@ -103,8 +121,6 @@ export const Scene3D: React.FC<Scene3DProps> = ({
             material.color.set(cubeColor);
           }
         });
-      } else if (cubeRef.current.material instanceof THREE.MeshPhongMaterial) {
-        cubeRef.current.material.color.set(cubeColor);
       }
       
       cubeRef.current.scale.set(cubeSize, cubeSize, cubeSize);
