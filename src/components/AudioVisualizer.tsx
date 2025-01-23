@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { Card } from './ui/card';
 import { createCubeGeometry } from './visualizer/CubeGeometry';
 import { createCubeText } from './visualizer/CubeText';
@@ -24,30 +23,16 @@ export const AudioVisualizer = () => {
     const cube = createCubeGeometry();
     scene.add(cube);
 
-    const fontLoader = new FontLoader();
     console.log('Loading font...');
-    fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', 
+    new THREE.FontLoader().load(
+      'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', 
       (font) => {
         console.log('Font loaded successfully');
-        
-        // Create text for different faces
         const positions = [
-          {
-            position: new THREE.Vector3(-0.5, 0, 1.1),
-            rotation: new THREE.Euler(0, 0, 0)
-          },
-          {
-            position: new THREE.Vector3(1.1, 0, 0.5),
-            rotation: new THREE.Euler(0, Math.PI / 2, 0)
-          },
-          {
-            position: new THREE.Vector3(0, 1.1, 0.5),
-            rotation: new THREE.Euler(-Math.PI / 2, 0, 0)
-          },
-          {
-            position: new THREE.Vector3(-0.5, -1.1, 0),
-            rotation: new THREE.Euler(Math.PI / 2, 0, 0)
-          }
+          { position: new THREE.Vector3(-0.5, 0, 1.1), rotation: new THREE.Euler(0, 0, 0) },
+          { position: new THREE.Vector3(1.1, 0, 0.5), rotation: new THREE.Euler(0, Math.PI / 2, 0) },
+          { position: new THREE.Vector3(0, 1.1, 0.5), rotation: new THREE.Euler(-Math.PI / 2, 0, 0) },
+          { position: new THREE.Vector3(-0.5, -1.1, 0), rotation: new THREE.Euler(Math.PI / 2, 0, 0) }
         ];
 
         positions.forEach(({ position, rotation }) => {
@@ -55,12 +40,6 @@ export const AudioVisualizer = () => {
           cube.add(textMesh);
           cube.add(strokeMesh);
         });
-      },
-      (xhr) => {
-        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-      },
-      (err) => {
-        console.error('An error occurred loading the font:', err);
       }
     );
 
@@ -98,14 +77,8 @@ export const AudioVisualizer = () => {
 
   return (
     <Card className="bg-gradient-to-br from-black/80 to-purple-900/50 backdrop-blur-sm border-neon-purple/20">
-      <div 
-        ref={containerRef} 
-        className="w-full h-[400px] rounded-lg"
-      />
-      <Controls 
-        isPlaying={isPlaying}
-        onPlayPause={() => setIsPlaying(!isPlaying)}
-      />
+      <div ref={containerRef} className="w-full h-[400px] rounded-lg" />
+      <Controls isPlaying={isPlaying} onPlayPause={() => setIsPlaying(!isPlaying)} />
     </Card>
   );
 };
