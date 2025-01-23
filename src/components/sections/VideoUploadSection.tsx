@@ -1,19 +1,24 @@
 import { Card } from "@/components/ui/card";
 import { VideoUploader } from "@/components/VideoUploader";
+import { PlatformCard } from "@/components/PlatformCard";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export const VideoUploadSection = () => {
+  const [description, setDescription] = useState("");
+
+  const handleGenerateAI = () => {
+    console.log("Generating AI content for social media posts");
+    toast.success("AI content generation started");
+  };
+
   return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <h2 className="text-4xl font-bold mb-4">Video Upload</h2>
-        <p className="text-muted-foreground">
-          Upload your videos to create custom visualizations
-        </p>
-      </div>
-      
-      <Card className="p-6 bg-black/80 backdrop-blur-sm border-neon-purple/20">
-        <VideoUploader />
-      </Card>
+    <div className="grid gap-8 md:grid-cols-2">
+      <VideoUploader />
+      <PlatformCard
+        description={description}
+        onGenerateAI={handleGenerateAI}
+      />
     </div>
   );
 };
