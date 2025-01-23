@@ -95,9 +95,13 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
       
       // Update cube color
       if (Array.isArray(cubeRef.current.material)) {
-        cubeRef.current.material.forEach(material => {
-          material.color.set(cubeColor);
+        cubeRef.current.material.forEach((material) => {
+          if (material instanceof THREE.MeshPhongMaterial) {
+            material.color.set(cubeColor);
+          }
         });
+      } else if (cubeRef.current.material instanceof THREE.MeshPhongMaterial) {
+        cubeRef.current.material.color.set(cubeColor);
       }
       
       // Update cube size
