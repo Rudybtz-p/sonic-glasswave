@@ -7,15 +7,16 @@ import { setupLights } from './visualizer/Lights';
 import { Controls } from './visualizer/Controls';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Circle, MessageCircle, ThumbsUp } from 'lucide-react';
+import { Circle, MessageCircle, ThumbsUp, UserPlus } from 'lucide-react';
+import { Button } from './ui/button';
 
 export const AudioVisualizer = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [comments, setComments] = useState<string[]>([]);
   const [likes, setLikes] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
 
-  // Simulate real-time comments
   useEffect(() => {
     if (isPlaying) {
       const interval = setInterval(() => {
@@ -100,16 +101,34 @@ export const AudioVisualizer = () => {
     };
   }, []);
 
+  const handleFollow = () => {
+    setIsFollowing(!isFollowing);
+    console.log('Follow status changed:', !isFollowing);
+  };
+
   return (
     <Card className="bg-gradient-to-br from-black/80 to-purple-900/50 backdrop-blur-sm border-neon-purple/20 relative">
       {/* User Profile */}
-      <div className="absolute top-4 left-4 z-10">
+      <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
         <Avatar>
           <AvatarImage src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158" />
           <AvatarFallback>
             <Circle className="w-10 h-10" />
           </AvatarFallback>
         </Avatar>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleFollow}
+          className={`ml-2 transition-colors duration-300 ${
+            isFollowing 
+              ? 'bg-neon-purple text-white hover:bg-neon-purple/90' 
+              : 'bg-transparent border-neon-purple/50 text-neon-purple hover:bg-neon-purple/10'
+          }`}
+        >
+          <UserPlus className="w-4 h-4 mr-2" />
+          {isFollowing ? 'Following' : 'Follow'}
+        </Button>
       </div>
 
       {/* Gender/Style Tag */}
