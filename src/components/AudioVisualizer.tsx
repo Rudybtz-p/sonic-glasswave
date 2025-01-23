@@ -17,6 +17,7 @@ import { AudioAnalyzer } from './visualizer/AudioAnalyzer';
 
 export const AudioVisualizer = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const cubeRef = useRef<THREE.Mesh | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [comments, setComments] = useState<string[]>([]);
   const [likes, setLikes] = useState(0);
@@ -33,7 +34,7 @@ export const AudioVisualizer = () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const texture = new THREE.TextureLoader().load(e.target?.result as string);
-      const materials = (cube.current?.material as THREE.MeshPhongMaterial[]);
+      const materials = (cubeRef.current?.material as THREE.MeshPhongMaterial[]);
       const faceIndex = ['right', 'left', 'top', 'bottom', 'front', 'back'].indexOf(face);
       if (materials && faceIndex !== -1) {
         materials[faceIndex].map = texture;
@@ -54,6 +55,7 @@ export const AudioVisualizer = () => {
     containerRef.current.appendChild(renderer.domElement);
 
     const cube = createCubeGeometry();
+    cubeRef.current = cube; // Assign the cube to our ref
     scene.add(cube);
 
     // Initialize particle system
