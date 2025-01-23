@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { VideoUploader } from "@/components/VideoUploader";
-import PlatformCard from "@/components/PlatformCard";
+import { PlatformCard } from "@/components/PlatformCard";
 import { useState } from "react";
 import { toast } from "sonner";
 
