@@ -7,8 +7,10 @@ export const signInSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
+export type SignInFormData = z.infer<typeof signInSchema>;
+
 type SignInFormProps = {
-  form: UseFormReturn<z.infer<typeof signInSchema>>;
+  form: UseFormReturn<SignInFormData>;
 };
 
 export const SignInForm = ({ form }: SignInFormProps) => {

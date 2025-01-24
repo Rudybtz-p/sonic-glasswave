@@ -5,8 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { SignInForm, signInSchema } from "./SignInForm";
-import { SignUpForm, signUpSchema } from "./SignUpForm";
+import { SignInForm, signInSchema, type SignInFormData } from "./SignInForm";
+import { SignUpForm, signUpSchema, type SignUpFormData } from "./SignUpForm";
 
 type AuthFormProps = {
   mode: "signin" | "signup";
@@ -18,16 +18,26 @@ export const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const form = useForm({
-    resolver: zodResolver(mode === "signin" ? signInSchema : signUpSchema),
+  const signInForm = useForm<SignInFormData>({
+    resolver: zodResolver(signInSchema),
     defaultValues: {
       email: "",
       password: "",
-      ...(mode === "signup" && { confirmPassword: "" }),
     },
   });
 
-  const onSubmit = async (values: any) => {
+  const signUpForm = useForm<SignUpFormData>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  const currentForm = mode === "signin" ? signInForm : signUpForm;
+
+  const onSubmit = async (values: SignInFormData | SignUpFormData) => {
     try {
       setIsLoading(true);
       console.log(`Attempting ${mode} with:`, { email: values.email });
@@ -86,12 +96,12 @@ export const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <Form {...currentForm}>
+      <form onSubmit={currentForm.handleSubmit(onSubmit)} className="space-y-4">
         {mode === "signin" ? (
-          <SignInForm form={form} />
+          <SignInForm form={signInForm} />
         ) : (
-          <SignUpForm form={form} />
+          <SignUpForm form={signUpForm} />
         )}
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? "Loading..." : mode === "signin" ? "Sign In" : "Sign Up"}
