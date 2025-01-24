@@ -14,7 +14,7 @@ const Index = () => {
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="text-center">
-            <h2 className="text-4xl font-bold mb-4">Social Media Video Uploader</h2>
+            <h2 className="text-4xl font-bold mb-4">Social 3D Beat Share</h2>
             <p className="text-muted-foreground">
               Upload your video once, share it everywhere with AI-powered descriptions
             </p>
