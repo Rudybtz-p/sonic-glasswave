@@ -14,7 +14,7 @@ const Index = () => {
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="text-center">
-            <h1 className="text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-neon-purple via-neon-pink to-neon-orange">
+            <h1 className="text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-neon-purple via-neon-pink to-neon-orange transform perspective-[1000px] rotate-x-12 hover:rotate-x-0 transition-transform duration-300">
               Social 3D Beat Share
             </h1>
             <p className="text-muted-foreground">
