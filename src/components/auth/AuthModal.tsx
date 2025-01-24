@@ -18,6 +18,10 @@ export const AuthModal = () => {
     setMode((prev) => (prev === "signin" ? "signup" : "signin"));
   };
 
+  const handleSuccess = () => {
+    setOpen(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -29,7 +33,11 @@ export const AuthModal = () => {
         <DialogHeader>
           <DialogTitle>{mode === "signin" ? "Sign In" : "Sign Up"}</DialogTitle>
         </DialogHeader>
-        <AuthForm mode={mode} onToggleMode={toggleMode} />
+        <AuthForm 
+          mode={mode} 
+          onToggleMode={toggleMode} 
+          onSuccess={handleSuccess}
+        />
       </DialogContent>
     </Dialog>
   );
