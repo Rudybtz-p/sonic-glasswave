@@ -51,22 +51,41 @@ export const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
   const onSubmit = async (values: z.infer<typeof signInSchema> | z.infer<typeof signUpSchema>) => {
     try {
       setIsLoading(true);
-      console.log("Attempting auth with:", { email: values.email });
+      console.log(`Attempting ${mode} with:`, { email: values.email });
 
       if (mode === "signin") {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: values.email,
           password: values.password,
         });
 
-        if (error) throw error;
+        console.log("Sign in response:", { data, error });
+
+        if (error) {
+          if (error.message === "Invalid login credentials") {
+            throw new Error("Invalid email or password. Please try again or sign up if you don't have an account.");
+          }
+          throw error;
+        }
+
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: values.email,
           password: values.password,
         });
 
-        if (error) throw error;
+        console.log("Sign up response:", { data, error });
+
+        if (error) {
+          if (error.message.includes("User already registered")) {
+            throw new Error("This email is already registered. Please sign in instead.");
+          }
+          throw error;
+        }
         
         toast({
           title: "Success!",
