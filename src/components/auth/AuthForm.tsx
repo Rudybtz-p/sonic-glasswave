@@ -1,33 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-
-const signInSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-const signUpSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+import { SignInForm, signInSchema } from "./SignInForm";
+import { SignUpForm, signUpSchema } from "./SignUpForm";
 
 type AuthFormProps = {
   mode: "signin" | "signup";
@@ -39,7 +18,7 @@ export const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof signInSchema> | z.infer<typeof signUpSchema>>({
+  const form = useForm({
     resolver: zodResolver(mode === "signin" ? signInSchema : signUpSchema),
     defaultValues: {
       email: "",
@@ -48,7 +27,7 @@ export const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof signInSchema> | z.infer<typeof signUpSchema>) => {
+  const onSubmit = async (values: any) => {
     try {
       setIsLoading(true);
       console.log(`Attempting ${mode} with:`, { email: values.email });
@@ -109,46 +88,10 @@ export const AuthForm = ({ mode, onToggleMode, onSuccess }: AuthFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your email" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="Enter your password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        {mode === "signup" && (
-          <FormField
-            control={form.control}
-            name="confirmPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
-                <FormControl>
-                  <Input type="password" placeholder="Confirm your password" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        {mode === "signin" ? (
+          <SignInForm form={form} />
+        ) : (
+          <SignUpForm form={form} />
         )}
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? "Loading..." : mode === "signin" ? "Sign In" : "Sign Up"}
