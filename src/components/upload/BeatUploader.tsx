@@ -13,6 +13,14 @@ export const BeatUploader = ({ onBeatUploaded }: BeatUploaderProps) => {
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
       if (file.type.startsWith('audio/')) {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          toast.error('Please sign in to upload beats');
+          return;
+        }
+
         // Upload to Supabase storage
         const fileName = `${crypto.randomUUID()}-${file.name}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
@@ -28,19 +36,21 @@ export const BeatUploader = ({ onBeatUploaded }: BeatUploaderProps) => {
           .from('videos')
           .getPublicUrl(fileName);
 
-        // Create video record in database
+        // Create video record in database with user_id
         const { data: videoData, error: dbError } = await supabase
           .from('videos')
           .insert({
             title: file.name,
             track_name: file.name,
             beat_url: publicUrl,
-            render_status: 'pending'
+            render_status: 'pending',
+            user_id: user.id // Set the user_id here
           })
           .select()
           .single();
 
         if (dbError) {
+          console.error('Database error:', dbError);
           toast.error('Failed to create video record');
           return;
         }
