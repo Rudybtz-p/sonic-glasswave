@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { Progress } from './ui/progress';
 import { toast } from 'sonner';
 import { Upload, Video, Share2, Wand2, Image as ImageIcon, Instagram } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface VideoFile extends File {
   preview: string;
@@ -23,11 +24,45 @@ export const VideoUploader = () => {
   });
   const [renderProgress, setRenderProgress] = useState(0);
   const [isRendering, setIsRendering] = useState(false);
+  const [videoId, setVideoId] = useState<string | null>(null);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
       if (file.type.startsWith('audio/')) {
+        // Upload to Supabase storage
+        const fileName = `${crypto.randomUUID()}-${file.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('videos')
+          .upload(fileName, file);
+
+        if (uploadError) {
+          toast.error('Failed to upload beat');
+          return;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('videos')
+          .getPublicUrl(fileName);
+
+        // Create video record in database
+        const { data: videoData, error: dbError } = await supabase
+          .from('videos')
+          .insert({
+            title: file.name,
+            track_name: file.name,
+            beat_url: publicUrl,
+            render_status: 'pending'
+          })
+          .select()
+          .single();
+
+        if (dbError) {
+          toast.error('Failed to create video record');
+          return;
+        }
+
+        setVideoId(videoData.id);
         setVideo(Object.assign(file, {
           preview: URL.createObjectURL(file)
         }));
@@ -46,40 +81,121 @@ export const VideoUploader = () => {
     maxFiles: 1
   });
 
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
+    if (file && videoId) {
+      const fileName = `${crypto.randomUUID()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('assets')
+        .upload(fileName, file);
+
+      if (error) {
+        toast.error('Failed to upload logo');
+        return;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('assets')
+        .getPublicUrl(fileName);
+
+      await supabase
+        .from('videos')
+        .update({ logo_url: publicUrl })
+        .eq('id', videoId);
+
       setUploadState(prev => ({ ...prev, logo: file }));
       toast.success('Logo uploaded successfully!');
     }
   };
 
-  const handleBackgroundUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBackgroundUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
+    if (file && videoId) {
+      const fileName = `${crypto.randomUUID()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('assets')
+        .upload(fileName, file);
+
+      if (error) {
+        toast.error('Failed to upload background');
+        return;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('assets')
+        .getPublicUrl(fileName);
+
+      await supabase
+        .from('videos')
+        .update({ background_image_url: publicUrl })
+        .eq('id', videoId);
+
       setUploadState(prev => ({ ...prev, backgroundImage: file }));
       toast.success('Background image uploaded successfully!');
     }
   };
 
-  const handleInstagramChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setUploadState(prev => ({ ...prev, instagramHandle: event.target.value }));
+  const handleInstagramChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handle = event.target.value;
+    if (videoId) {
+      await supabase
+        .from('videos')
+        .update({ instagram_handle: handle })
+        .eq('id', videoId);
+    }
+    setUploadState(prev => ({ ...prev, instagramHandle: handle }));
   };
 
-  const handleRender = () => {
+  const handleRender = async () => {
+    if (!videoId) {
+      toast.error('Please upload a beat first');
+      return;
+    }
+
     setIsRendering(true);
-    // Simulate rendering progress
-    const interval = setInterval(() => {
-      setRenderProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsRendering(false);
-          toast.success('Rendering complete!');
-          return 100;
-        }
-        return prev + 10;
+    try {
+      const response = await fetch('/functions/render-video', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ videoId })
       });
-    }, 500);
+
+      if (!response.ok) {
+        throw new Error('Failed to render video');
+      }
+
+      // Subscribe to realtime updates for render progress
+      const subscription = supabase
+        .channel('render-progress')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'videos',
+            filter: `id=eq.${videoId}`
+          },
+          (payload) => {
+            const status = payload.new.render_status;
+            if (status.startsWith('rendering:')) {
+              const progress = parseInt(status.split(':')[1]);
+              setRenderProgress(progress);
+            } else if (status === 'completed') {
+              setIsRendering(false);
+              setRenderProgress(100);
+              toast.success('Rendering complete!');
+              subscription.unsubscribe();
+            }
+          }
+        )
+        .subscribe();
+
+    } catch (error) {
+      toast.error('Failed to render video');
+      setIsRendering(false);
+    }
   };
 
   const handleGenerateDescription = () => {
@@ -164,54 +280,58 @@ export const VideoUploader = () => {
             />
           </div>
         </div>
-      </div>
 
-      {video && (
-        <div className="mt-6 animate-fade-in space-y-4">
-          <h3 className="font-medium mb-2">Preview:</h3>
-          <audio
-            src={video.preview}
-            controls
-            className="w-full"
-          />
-          
-          {isRendering && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Rendering Progress</span>
-                <span>{renderProgress}%</span>
-              </div>
-              <Progress value={renderProgress} />
-            </div>
-          )}
-
-          <div className="flex flex-col gap-4">
-            <Button onClick={handleRender} disabled={isRendering}>
-              <Video className="w-4 h-4 mr-2" />
-              Render Video
-            </Button>
-
-            {renderProgress === 100 && (
-              <div className="space-y-4">
-                <Button onClick={handleGenerateDescription} variant="outline" className="w-full">
-                  <Wand2 className="w-4 h-4 mr-2" />
-                  Generate Description & Tags with AI
-                </Button>
-                
-                <Button onClick={handleGenerateCover} variant="outline" className="w-full">
-                  <ImageIcon className="w-4 h-4 mr-2" />
-                  Generate Cover Image with AI
-                </Button>
-
-                <Button onClick={handleShare} className="w-full">
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Share Beat Video
-                </Button>
+        {video && (
+          <div className="mt-6 animate-fade-in space-y-4">
+            <h3 className="font-medium mb-2">Preview:</h3>
+            <audio
+              src={video.preview}
+              controls
+              className="w-full"
+            />
+            
+            {isRendering && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Rendering Progress</span>
+                  <span>{renderProgress}%</span>
+                </div>
+                <Progress value={renderProgress} className="h-2" />
               </div>
             )}
+
+            <div className="flex flex-col gap-4">
+              <Button 
+                onClick={handleRender} 
+                disabled={isRendering}
+                className="w-full"
+              >
+                <Video className="w-4 h-4 mr-2" />
+                {isRendering ? 'Rendering...' : 'Render Video'}
+              </Button>
+
+              {renderProgress === 100 && (
+                <div className="space-y-4">
+                  <Button onClick={handleGenerateDescription} variant="outline" className="w-full">
+                    <Wand2 className="w-4 h-4 mr-2" />
+                    Generate Description & Tags with AI
+                  </Button>
+                  
+                  <Button onClick={handleGenerateCover} variant="outline" className="w-full">
+                    <ImageIcon className="w-4 h-4 mr-2" />
+                    Generate Cover Image with AI
+                  </Button>
+
+                  <Button onClick={handleShare} className="w-full">
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share Beat Video
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </Card>
   );
 };
