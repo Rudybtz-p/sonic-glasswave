@@ -1,11 +1,11 @@
-import React, { useCallback, useState } from 'react';
-import { useDropzone } from 'react-dropzone';
+import React, { useState } from 'react';
 import { Card } from './ui/card';
-import { Button } from './ui/button';
-import { Progress } from './ui/progress';
-import { toast } from 'sonner';
-import { Upload, Video, Share2, Wand2, Image as ImageIcon, Instagram } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { BeatUploader } from './upload/BeatUploader';
+import { AssetUploader } from './upload/AssetUploader';
+import { InstagramHandle } from './upload/InstagramHandle';
+import { RenderControls } from './upload/RenderControls';
 
 interface VideoFile extends File {
   preview: string;
@@ -14,7 +14,7 @@ interface VideoFile extends File {
 interface UploadState {
   logo?: File;
   backgroundImage?: File;
-  instagramHandle?: string;
+  instagramHandle: string;
 }
 
 export const VideoUploader = () => {
@@ -26,124 +26,9 @@ export const VideoUploader = () => {
   const [isRendering, setIsRendering] = useState(false);
   const [videoId, setVideoId] = useState<string | null>(null);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      const file = acceptedFiles[0];
-      if (file.type.startsWith('audio/')) {
-        // Upload to Supabase storage
-        const fileName = `${crypto.randomUUID()}-${file.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('videos')
-          .upload(fileName, file);
-
-        if (uploadError) {
-          toast.error('Failed to upload beat');
-          return;
-        }
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('videos')
-          .getPublicUrl(fileName);
-
-        // Create video record in database
-        const { data: videoData, error: dbError } = await supabase
-          .from('videos')
-          .insert({
-            title: file.name,
-            track_name: file.name,
-            beat_url: publicUrl,
-            render_status: 'pending'
-          })
-          .select()
-          .single();
-
-        if (dbError) {
-          toast.error('Failed to create video record');
-          return;
-        }
-
-        setVideoId(videoData.id);
-        setVideo(Object.assign(file, {
-          preview: URL.createObjectURL(file)
-        }));
-        toast.success('Beat uploaded successfully!');
-      } else {
-        toast.error('Please upload an audio file');
-      }
-    }
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'audio/*': []
-    },
-    maxFiles: 1
-  });
-
-  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && videoId) {
-      const fileName = `${crypto.randomUUID()}-${file.name}`;
-      const { data, error } = await supabase.storage
-        .from('assets')
-        .upload(fileName, file);
-
-      if (error) {
-        toast.error('Failed to upload logo');
-        return;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('assets')
-        .getPublicUrl(fileName);
-
-      await supabase
-        .from('videos')
-        .update({ logo_url: publicUrl })
-        .eq('id', videoId);
-
-      setUploadState(prev => ({ ...prev, logo: file }));
-      toast.success('Logo uploaded successfully!');
-    }
-  };
-
-  const handleBackgroundUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && videoId) {
-      const fileName = `${crypto.randomUUID()}-${file.name}`;
-      const { data, error } = await supabase.storage
-        .from('assets')
-        .upload(fileName, file);
-
-      if (error) {
-        toast.error('Failed to upload background');
-        return;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('assets')
-        .getPublicUrl(fileName);
-
-      await supabase
-        .from('videos')
-        .update({ background_image_url: publicUrl })
-        .eq('id', videoId);
-
-      setUploadState(prev => ({ ...prev, backgroundImage: file }));
-      toast.success('Background image uploaded successfully!');
-    }
-  };
-
-  const handleInstagramChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const handle = event.target.value;
-    if (videoId) {
-      await supabase
-        .from('videos')
-        .update({ instagram_handle: handle })
-        .eq('id', videoId);
-    }
-    setUploadState(prev => ({ ...prev, instagramHandle: handle }));
+  const handleBeatUploaded = (newVideoId: string, file: VideoFile) => {
+    setVideoId(newVideoId);
+    setVideo(file);
   };
 
   const handleRender = async () => {
@@ -198,88 +83,29 @@ export const VideoUploader = () => {
     }
   };
 
-  const handleGenerateDescription = () => {
-    toast.success('Generating AI description and tags...');
-  };
-
-  const handleGenerateCover = () => {
-    toast.success('Generating AI cover image...');
-  };
-
-  const handleShare = () => {
-    toast.success('Sharing beat video...');
-  };
-
   return (
     <Card className="p-6 w-full max-w-2xl mx-auto">
-      <div
-        {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-          ${isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary'}`}
-      >
-        <input {...getInputProps()} />
-        <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-        {isDragActive ? (
-          <p className="text-lg">Drop the beat here...</p>
-        ) : (
-          <div>
-            <p className="text-lg mb-2">Drag & drop your beat here</p>
-            <p className="text-sm text-gray-500">or click to select a file</p>
-          </div>
-        )}
-      </div>
+      <BeatUploader onBeatUploaded={handleBeatUploaded} />
 
       <div className="mt-6 space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Logo</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleLogoUpload}
-              className="hidden"
-              id="logo-upload"
-            />
-            <label
-              htmlFor="logo-upload"
-              className="flex items-center justify-center p-4 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary"
-            >
-              <ImageIcon className="w-6 h-6 mr-2" />
-              Upload Logo
-            </label>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Background Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleBackgroundUpload}
-              className="hidden"
-              id="bg-upload"
-            />
-            <label
-              htmlFor="bg-upload"
-              className="flex items-center justify-center p-4 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary"
-            >
-              <ImageIcon className="w-6 h-6 mr-2" />
-              Upload Background
-            </label>
-          </div>
+          <AssetUploader
+            type="logo"
+            videoId={videoId}
+            onAssetUploaded={(file) => setUploadState(prev => ({ ...prev, logo: file }))}
+          />
+          <AssetUploader
+            type="background"
+            videoId={videoId}
+            onAssetUploaded={(file) => setUploadState(prev => ({ ...prev, backgroundImage: file }))}
+          />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-2">Instagram Handle</label>
-          <div className="flex items-center">
-            <Instagram className="w-5 h-5 mr-2 text-instagram" />
-            <input
-              type="text"
-              value={uploadState.instagramHandle}
-              onChange={handleInstagramChange}
-              placeholder="@username"
-              className="flex-1 p-2 border rounded-lg"
-            />
-          </div>
-        </div>
+        <InstagramHandle
+          videoId={videoId}
+          value={uploadState.instagramHandle}
+          onChange={(handle) => setUploadState(prev => ({ ...prev, instagramHandle: handle }))}
+        />
 
         {video && (
           <div className="mt-6 animate-fade-in space-y-4">
@@ -290,45 +116,12 @@ export const VideoUploader = () => {
               className="w-full"
             />
             
-            {isRendering && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Rendering Progress</span>
-                  <span>{renderProgress}%</span>
-                </div>
-                <Progress value={renderProgress} className="h-2" />
-              </div>
-            )}
-
-            <div className="flex flex-col gap-4">
-              <Button 
-                onClick={handleRender} 
-                disabled={isRendering}
-                className="w-full"
-              >
-                <Video className="w-4 h-4 mr-2" />
-                {isRendering ? 'Rendering...' : 'Render Video'}
-              </Button>
-
-              {renderProgress === 100 && (
-                <div className="space-y-4">
-                  <Button onClick={handleGenerateDescription} variant="outline" className="w-full">
-                    <Wand2 className="w-4 h-4 mr-2" />
-                    Generate Description & Tags with AI
-                  </Button>
-                  
-                  <Button onClick={handleGenerateCover} variant="outline" className="w-full">
-                    <ImageIcon className="w-4 h-4 mr-2" />
-                    Generate Cover Image with AI
-                  </Button>
-
-                  <Button onClick={handleShare} className="w-full">
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share Beat Video
-                  </Button>
-                </div>
-              )}
-            </div>
+            <RenderControls
+              videoId={videoId}
+              isRendering={isRendering}
+              renderProgress={renderProgress}
+              onRender={handleRender}
+            />
           </div>
         )}
       </div>
