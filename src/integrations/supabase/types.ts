@@ -9,7 +9,90 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      social_media_config: {
+        Row: {
+          access_token: string | null
+          api_key: string
+          api_secret: string | null
+          created_at: string | null
+          id: string
+          platform: Database["public"]["Enums"]["social_platform"]
+          refresh_token: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          api_key: string
+          api_secret?: string | null
+          created_at?: string | null
+          id?: string
+          platform: Database["public"]["Enums"]["social_platform"]
+          refresh_token?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          api_key?: string
+          api_secret?: string | null
+          created_at?: string | null
+          id?: string
+          platform?: Database["public"]["Enums"]["social_platform"]
+          refresh_token?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      videos: {
+        Row: {
+          background_image_url: string | null
+          beat_url: string
+          created_at: string | null
+          description: string | null
+          id: string
+          instagram_handle: string | null
+          logo_url: string | null
+          render_status: string | null
+          title: string
+          track_name: string
+          updated_at: string | null
+          user_id: string | null
+          video_url: string | null
+        }
+        Insert: {
+          background_image_url?: string | null
+          beat_url: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          instagram_handle?: string | null
+          logo_url?: string | null
+          render_status?: string | null
+          title: string
+          track_name: string
+          updated_at?: string | null
+          user_id?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          background_image_url?: string | null
+          beat_url?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          instagram_handle?: string | null
+          logo_url?: string | null
+          render_status?: string | null
+          title?: string
+          track_name?: string
+          updated_at?: string | null
+          user_id?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +101,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      social_platform: "youtube" | "instagram" | "facebook" | "tiktok"
     }
     CompositeTypes: {
       [_ in never]: never
