@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,94 +9,75 @@ const corsHeaders = {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { videoId } = await req.json()
-    console.log('Received request to render video:', videoId)
-
-    const supabase = createClient(
+    // Create Supabase client
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Simulate video rendering process
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Get request body
+    const { videoId } = await req.json()
 
-    // Update video status to 'rendering'
-    const { error: updateError } = await supabase
+    if (!videoId) {
+      throw new Error('Video ID is required')
+    }
+
+    // Update video status to processing
+    const { error: updateError } = await supabaseClient
       .from('videos')
-      .update({ render_status: 'rendering' })
+      .update({ render_status: 'processing' })
       .eq('id', videoId)
 
     if (updateError) {
-      console.error('Error updating video status:', updateError)
       throw updateError
     }
 
-    console.log('Updated video status to rendering')
+    // Simulate video processing (replace with actual video processing logic)
+    await new Promise(resolve => setTimeout(resolve, 2000))
 
-    // Simulate the actual rendering process with progress updates
-    for (let progress = 0; progress <= 100; progress += 20) {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Update progress in the database
-      const { error: progressError } = await supabase
-        .from('videos')
-        .update({ render_status: `rendering:${progress}` })
-        .eq('id', videoId)
-
-      if (progressError) {
-        console.error('Error updating progress:', progressError)
-        throw progressError
-      }
-
-      console.log('Updated render progress:', progress)
-    }
-
-    // Generate a mock video URL (in production this would be a real rendered video)
-    const videoUrl = `https://example.com/rendered-video-${videoId}.mp4`
-
-    // Update the video record with the final URL and completed status
-    const { error: finalError } = await supabase
+    // Update video with completed status
+    const { error: completeError } = await supabaseClient
       .from('videos')
       .update({ 
         render_status: 'completed',
-        video_url: videoUrl
+        video_url: `https://example.com/processed-video-${videoId}.mp4` // Replace with actual video URL
       })
       .eq('id', videoId)
 
-    if (finalError) {
-      console.error('Error updating final status:', finalError)
-      throw finalError
+    if (completeError) {
+      throw completeError
     }
-
-    console.log('Video rendering completed:', videoUrl)
 
     return new Response(
       JSON.stringify({ 
-        message: 'Video rendered successfully',
-        videoUrl 
+        success: true, 
+        message: 'Video rendering completed',
+        videoId 
       }),
       { 
         headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        }
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        } 
       }
     )
 
   } catch (error) {
-    console.error('Error in render-video function:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        success: false, 
+        error: error.message 
+      }),
       { 
+        status: 400,
         headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        },
-        status: 500
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
       }
     )
   }
