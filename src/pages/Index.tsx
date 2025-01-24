@@ -1,53 +1,33 @@
+import { VideoUploader } from "@/components/VideoUploader";
+import { PlatformCard } from "@/components/PlatformCard";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { useState } from "react";
-import { VisualizerTabs } from "@/components/sections/VisualizerTabs";
 
 const Index = () => {
-  // State management for visualizer settings
-  const [rotationSpeed, setRotationSpeed] = useState(1);
-  const [cubeColor, setCubeColor] = useState('#8B5CF6');
-  const [cubeSize, setCubeSize] = useState(1);
-  const [particleEnabled, setParticleEnabled] = useState(true);
-  const [neonEnabled, setNeonEnabled] = useState(true);
-  
-  // State management for text settings
-  const [textSize, setTextSize] = useState(1);
-  const [textColor, setTextColor] = useState('#F97316');
-  const [displayText, setDisplayText] = useState('');
-  const [selectedFont, setSelectedFont] = useState('helvetiker');
-  const [textAnimation, setTextAnimation] = useState('none');
-  const [glowEnabled, setGlowEnabled] = useState(false);
+  const handleGenerateAI = () => {
+    console.log('Generating AI content');
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto space-y-8">
-          <VisualizerTabs
-            rotationSpeed={rotationSpeed}
-            setRotationSpeed={setRotationSpeed}
-            cubeColor={cubeColor}
-            setCubeColor={setCubeColor}
-            cubeSize={cubeSize}
-            setCubeSize={setCubeSize}
-            particleEnabled={particleEnabled}
-            setParticleEnabled={setParticleEnabled}
-            neonEnabled={neonEnabled}
-            setNeonEnabled={setNeonEnabled}
-            textSize={textSize}
-            setTextSize={setTextSize}
-            textColor={textColor}
-            setTextColor={setTextColor}
-            displayText={displayText}
-            setDisplayText={setDisplayText}
-            selectedFont={selectedFont}
-            setSelectedFont={setSelectedFont}
-            textAnimation={textAnimation}
-            setTextAnimation={setTextAnimation}
-            glowEnabled={glowEnabled}
-            setGlowEnabled={setGlowEnabled}
-          />
+          <div className="text-center">
+            <h2 className="text-4xl font-bold mb-4">Social Media Video Uploader</h2>
+            <p className="text-muted-foreground">
+              Upload your video once, share it everywhere with AI-powered descriptions
+            </p>
+          </div>
+
+          <VideoUploader />
+
+          <div className="max-w-2xl mx-auto">
+            <PlatformCard
+              description=""
+              onGenerateAI={handleGenerateAI}
+            />
+          </div>
         </div>
       </main>
       <Footer />
