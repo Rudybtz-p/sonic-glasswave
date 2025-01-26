@@ -7,6 +7,8 @@ import { AssetUploader } from './upload/AssetUploader';
 import { InstagramHandle } from './upload/InstagramHandle';
 import { RenderControls } from './upload/RenderControls';
 import { Loader2 } from 'lucide-react';
+import { MediaLayerSelector } from './visualization/MediaLayerSelector';
+import { ThreeDVisualizer } from './visualization/ThreeDVisualizer';
 
 interface VideoFile extends File {
   preview: string;
@@ -28,6 +30,8 @@ export const VideoUploader = () => {
   const [renderProgress, setRenderProgress] = useState(0);
   const [isRendering, setIsRendering] = useState(false);
   const [videoId, setVideoId] = useState<string | null>(null);
+  const [mediaMode, setMediaMode] = useState<'video' | '3d'>('video');
+  const [cubeStyle, setCubeStyle] = useState<'neon' | 'wireframe' | 'realistic'>('neon');
 
   const handleBeatUploaded = (newVideoId: string, file: VideoFile) => {
     setVideoId(newVideoId);
@@ -98,12 +102,21 @@ export const VideoUploader = () => {
         </div>
       )}
 
-      <BeatUploader 
-        onBeatUploaded={handleBeatUploaded}
-        onUploadStateChange={(isUploading) => 
-          setUploadState(prev => ({ ...prev, isUploading }))
-        } 
+      <MediaLayerSelector
+        selectedMode={mediaMode}
+        onModeChange={setMediaMode}
       />
+
+      {mediaMode === 'video' ? (
+        <BeatUploader 
+          onBeatUploaded={handleBeatUploaded}
+          onUploadStateChange={(isUploading) => 
+            setUploadState(prev => ({ ...prev, isUploading }))
+          } 
+        />
+      ) : (
+        <ThreeDVisualizer cubeStyle={cubeStyle} />
+      )}
 
       <div className="mt-6 space-y-4">
         <div className="grid grid-cols-2 gap-4">
