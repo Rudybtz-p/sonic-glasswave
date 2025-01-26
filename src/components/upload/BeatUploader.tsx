@@ -6,64 +6,72 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface BeatUploaderProps {
   onBeatUploaded: (videoId: string, file: File) => void;
+  onUploadStateChange: (isUploading: boolean) => void;
 }
 
-export const BeatUploader = ({ onBeatUploaded }: BeatUploaderProps) => {
+export const BeatUploader = ({ onBeatUploaded, onUploadStateChange }: BeatUploaderProps) => {
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
       if (file.type.startsWith('audio/')) {
-        // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          toast.error('Please sign in to upload beats');
-          return;
+        onUploadStateChange(true);
+        try {
+          // Get current user
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          if (!user) {
+            toast.error('Please sign in to upload beats');
+            return;
+          }
+
+          // Upload to Supabase storage
+          const fileName = `${crypto.randomUUID()}-${file.name}`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('videos')
+            .upload(fileName, file);
+
+          if (uploadError) {
+            toast.error('Failed to upload beat');
+            return;
+          }
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('videos')
+            .getPublicUrl(fileName);
+
+          // Create video record in database with user_id
+          const { data: videoData, error: dbError } = await supabase
+            .from('videos')
+            .insert({
+              title: file.name,
+              track_name: file.name,
+              beat_url: publicUrl,
+              render_status: 'pending',
+              user_id: user.id
+            })
+            .select()
+            .single();
+
+          if (dbError) {
+            console.error('Database error:', dbError);
+            toast.error('Failed to create video record');
+            return;
+          }
+
+          onBeatUploaded(videoData.id, Object.assign(file, {
+            preview: URL.createObjectURL(file)
+          }));
+        } catch (error) {
+          console.error('Upload error:', error);
+          toast.error('An error occurred during upload');
+        } finally {
+          onUploadStateChange(false);
         }
-
-        // Upload to Supabase storage
-        const fileName = `${crypto.randomUUID()}-${file.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('videos')
-          .upload(fileName, file);
-
-        if (uploadError) {
-          toast.error('Failed to upload beat');
-          return;
-        }
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('videos')
-          .getPublicUrl(fileName);
-
-        // Create video record in database with user_id
-        const { data: videoData, error: dbError } = await supabase
-          .from('videos')
-          .insert({
-            title: file.name,
-            track_name: file.name,
-            beat_url: publicUrl,
-            render_status: 'pending',
-            user_id: user.id // Set the user_id here
-          })
-          .select()
-          .single();
-
-        if (dbError) {
-          console.error('Database error:', dbError);
-          toast.error('Failed to create video record');
-          return;
-        }
-
-        onBeatUploaded(videoData.id, Object.assign(file, {
-          preview: URL.createObjectURL(file)
-        }));
-        toast.success('Beat uploaded successfully!');
       } else {
         toast.error('Please upload an audio file');
       }
     }
-  }, [onBeatUploaded]);
+  }, [onBeatUploaded, onUploadStateChange]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
