@@ -39,6 +39,10 @@ const BeatsBrowser = () => {
     fetchBeats();
   }, []);
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="h-screen w-screen bg-black overflow-hidden">
       <Carousel className="h-full" orientation="vertical">
@@ -47,7 +51,7 @@ const BeatsBrowser = () => {
             <CarouselItem key={beat.id} className="pt-1 h-full">
               <div className="relative h-full w-full bg-gradient-to-b from-neutral-900 to-black">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <AudioVisualizer audioUrl={beat.beat_url} />
+                  {beat.beat_url && <AudioVisualizer audioUrl={beat.beat_url} />}
                 </div>
                 
                 {/* Beat Info Overlay */}
