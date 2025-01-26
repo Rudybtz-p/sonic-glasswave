@@ -7,19 +7,16 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get request body
     const { videoId } = await req.json()
 
     if (!videoId) {
@@ -44,7 +41,7 @@ serve(async (req) => {
       .from('videos')
       .update({ 
         render_status: 'completed',
-        video_url: `https://example.com/processed-video-${videoId}.mp4` // Replace with actual video URL
+        video_url: `https://example.com/processed-video-${videoId}.mp4`
       })
       .eq('id', videoId)
 
