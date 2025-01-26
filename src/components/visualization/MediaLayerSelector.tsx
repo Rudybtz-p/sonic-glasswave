@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '../ui/button';
-import { Video3d, Upload } from 'lucide-react';
+import { Video, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MediaLayerSelectorProps {
@@ -30,7 +30,7 @@ export const MediaLayerSelector = ({ selectedMode, onModeChange }: MediaLayerSel
         )}
         onClick={() => onModeChange('3d')}
       >
-        <Video3d className="w-4 h-4" />
+        <Video className="w-4 h-4" />
         3D Animation
       </Button>
     </div>
