@@ -65,6 +65,10 @@ export const ThreeDVisualizer = ({ cubeStyle, audioData }: ThreeDVisualizerProps
           roughness: 0.1,
         });
         break;
+      default:
+        material = new THREE.MeshPhongMaterial({
+          color: 0x8B5CF6,
+        });
     }
 
     cubeRef.current = new THREE.Mesh(geometry, material);
@@ -89,12 +93,24 @@ export const ThreeDVisualizer = ({ cubeStyle, audioData }: ThreeDVisualizerProps
     };
     animate();
 
+    // Handle window resize
+    const handleResize = () => {
+      if (!containerRef.current || !cameraRef.current || !rendererRef.current) return;
+      
+      cameraRef.current.aspect = containerRef.current.clientWidth / containerRef.current.clientHeight;
+      cameraRef.current.updateProjectionMatrix();
+      rendererRef.current.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
+    };
+
+    window.addEventListener('resize', handleResize);
+
     // Cleanup
     return () => {
+      window.removeEventListener('resize', handleResize);
       containerRef.current?.removeChild(rendererRef.current!.domElement);
       rendererRef.current?.dispose();
     };
-  }, [cubeStyle]);
+  }, [cubeStyle, audioData]);
 
   return <div ref={containerRef} className="w-full h-[400px] rounded-lg overflow-hidden" />;
 };
