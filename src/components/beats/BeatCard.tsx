@@ -7,11 +7,11 @@ interface BeatCardProps {
   title: string;
   genre: string;
   bpm: number;
-  key: string;
+  musicalKey: string;
   onClick: () => void;
 }
 
-export const BeatCard = ({ artwork, title, genre, bpm, key, onClick }: BeatCardProps) => {
+export const BeatCard = ({ artwork, title, genre, bpm, musicalKey, onClick }: BeatCardProps) => {
   return (
     <div 
       className="group relative overflow-hidden rounded-lg border border-neon-purple/20 bg-background/80 backdrop-blur-sm transition-all duration-300 hover:scale-[1.02]"
@@ -46,7 +46,7 @@ export const BeatCard = ({ artwork, title, genre, bpm, key, onClick }: BeatCardP
             {bpm} BPM
           </Badge>
           <Badge variant="secondary" className="bg-neon-purple/10 text-neon-purple border-neon-purple/20">
-            Key: {key}
+            Key: {musicalKey}
           </Badge>
         </div>
         <div className="flex justify-between items-center pt-2">

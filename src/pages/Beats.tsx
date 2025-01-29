@@ -13,7 +13,7 @@ const SAMPLE_BEATS = [
     title: 'Midnight Vibes',
     genre: 'UK Drill',
     bpm: 140,
-    key: 'Am',
+    musicalKey: 'Am',
     description: 'Deep bass, atmospheric synths, perfect for modern trap',
   },
   {
@@ -22,7 +22,7 @@ const SAMPLE_BEATS = [
     title: 'Urban Dreams',
     genre: 'Trap',
     bpm: 145,
-    key: 'Fm',
+    musicalKey: 'Fm',
     description: 'Hard-hitting drums with melodic elements',
   },
   {
@@ -31,7 +31,7 @@ const SAMPLE_BEATS = [
     title: 'Dark Streets',
     genre: 'UK Drill',
     bpm: 142,
-    key: 'Cm',
+    musicalKey: 'Cm',
     description: 'Haunting melodies with aggressive 808s',
   },
   {
@@ -40,7 +40,7 @@ const SAMPLE_BEATS = [
     title: 'Night Rider',
     genre: 'Trap',
     bpm: 138,
-    key: 'Gm',
+    musicalKey: 'Gm',
     description: 'Cinematic trap vibes with heavy bass',
   },
 ];
@@ -84,7 +84,7 @@ const Beats = () => {
               title={beat.title}
               genre={beat.genre}
               bpm={beat.bpm}
-              key={beat.key}
+              musicalKey={beat.musicalKey}
               onClick={() => setSelectedBeat(beat)}
             />
           ))}
