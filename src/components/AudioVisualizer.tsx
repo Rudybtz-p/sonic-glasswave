@@ -5,13 +5,13 @@ import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { Button } from './ui/button';
 import { Play, Pause, SkipBack, SkipForward, List, Upload, Share2, Heart } from 'lucide-react';
 import { Card } from './ui/card';
-import { useMediaQuery } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export const AudioVisualizer = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [liked, setLiked] = useState(false);
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!containerRef.current) return;
