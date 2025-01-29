@@ -1,35 +1,52 @@
-import { Github } from "lucide-react";
+import { Instagram, Youtube, Music2, SoundCloud } from "lucide-react";
 import { Button } from "./ui/button";
-import { AuthModal } from "./auth/AuthModal";
-import { useAdmin } from "@/hooks/useAdmin";
-import { Badge } from "./ui/badge";
 
 export const Header = () => {
-  const { isAdmin } = useAdmin();
-
   return (
-    <header className="border-b">
+    <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-lg border-b">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-neon-purple to-neon-pink bg-clip-text text-transparent">
+          RudyBtz
+        </h1>
         <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-neon-purple to-neon-pink bg-clip-text text-transparent">
-            Cubeatz
-          </h1>
-          {isAdmin && (
-            <Badge variant="secondary" className="ml-2">
-              Admin
-            </Badge>
-          )}
-        </div>
-        <div className="flex items-center space-x-2">
-          <AuthModal />
-          <Button variant="outline" size="icon" asChild>
+          <Button variant="ghost" size="icon" asChild>
             <a
-              href="https://github.com"
+              href="https://instagram.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-primary"
+              className="hover:text-neon-purple transition-colors"
             >
-              <Github className="h-5 w-5" />
+              <Instagram className="h-5 w-5" />
+            </a>
+          </Button>
+          <Button variant="ghost" size="icon" asChild>
+            <a
+              href="https://youtube.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-youtube transition-colors"
+            >
+              <Youtube className="h-5 w-5" />
+            </a>
+          </Button>
+          <Button variant="ghost" size="icon" asChild>
+            <a
+              href="https://soundcloud.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#ff5500] transition-colors"
+            >
+              <SoundCloud className="h-5 w-5" />
+            </a>
+          </Button>
+          <Button variant="ghost" size="icon" asChild>
+            <a
+              href="https://spotify.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#1DB954] transition-colors"
+            >
+              <Music2 className="h-5 w-5" />
             </a>
           </Button>
         </div>
