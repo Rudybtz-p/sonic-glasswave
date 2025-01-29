@@ -7,7 +7,7 @@ interface BeatCardProps {
   title: string;
   genre: string;
   bpm: number;
-  musicalKey: string;
+  musicalKey: string;  // Changed from 'key' to 'musicalKey' to match the data structure
   onClick: () => void;
 }
 
