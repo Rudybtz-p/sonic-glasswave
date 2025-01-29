@@ -3,12 +3,13 @@ import * as THREE from 'three';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { Button } from './ui/button';
-import { Play, Pause, SkipBack, SkipForward, List, Upload } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, List, Upload, Share2, Heart } from 'lucide-react';
 import { Card } from './ui/card';
 
 export const AudioVisualizer = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [liked, setLiked] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -21,7 +22,7 @@ export const AudioVisualizer = () => {
     renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
     containerRef.current.appendChild(renderer.domElement);
 
-    // Create cube with glass effect
+    // Create main cube
     const geometry = new THREE.BoxGeometry(2, 2, 2);
     const material = new THREE.MeshPhongMaterial({
       color: 0x8B5CF6,
@@ -44,32 +45,83 @@ export const AudioVisualizer = () => {
     const wireframe = new THREE.LineSegments(edges, lineMaterial);
     cube.add(wireframe);
 
-    // Load font and create text
+    // Create frequency dots for top face
+    const dotsGroup = new THREE.Group();
+    for(let i = 0; i < 16; i++) {
+      const dotGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+      const dotMaterial = new THREE.MeshPhongMaterial({
+        color: 0xF97316,
+        emissive: 0xF97316,
+        emissiveIntensity: 0.5,
+      });
+      const dot = new THREE.Mesh(dotGeometry, dotMaterial);
+      dot.position.set(
+        (i % 4) * 0.2 - 0.3,
+        1.1,
+        Math.floor(i / 4) * 0.2 - 0.3
+      );
+      dotsGroup.add(dot);
+    }
+    cube.add(dotsGroup);
+
+    // Load font and create text for all faces
     const fontLoader = new FontLoader();
     console.log('Loading font...');
     fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', 
-      // onLoad callback
       (font) => {
         console.log('Font loaded successfully');
-        const textGeometry = new TextGeometry('CUBEATZ', {
+        
+        // Front face - RudyBtz
+        const frontTextGeometry = new TextGeometry('RUDYBTZ', {
           font: font,
           size: 0.2,
           height: 0.05,
         });
-        const textMaterial = new THREE.MeshPhongMaterial({ 
+        const frontTextMaterial = new THREE.MeshPhongMaterial({ 
           color: 0xF97316,
           emissive: 0xF97316,
           emissiveIntensity: 0.5,
         });
-        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-        textMesh.position.set(-0.5, 0, 1.1);
-        cube.add(textMesh);
+        const frontText = new THREE.Mesh(frontTextGeometry, frontTextMaterial);
+        frontText.position.set(-0.6, 0, 1.1);
+        cube.add(frontText);
+
+        // Top face - TRAP
+        const topTextGeometry = new TextGeometry('TRAP', {
+          font: font,
+          size: 0.2,
+          height: 0.05,
+        });
+        const topText = new THREE.Mesh(topTextGeometry, frontTextMaterial);
+        topText.rotation.x = -Math.PI / 2;
+        topText.position.set(-0.3, 1.1, -0.1);
+        cube.add(topText);
+
+        // Right face - UK DRILL
+        const rightTextGeometry = new TextGeometry('UK DRILL', {
+          font: font,
+          size: 0.15,
+          height: 0.05,
+        });
+        const rightText = new THREE.Mesh(rightTextGeometry, frontTextMaterial);
+        rightText.rotation.y = Math.PI / 2;
+        rightText.position.set(1.1, 0, 0.3);
+        cube.add(rightText);
+
+        // Left face - FUNKBR
+        const leftTextGeometry = new TextGeometry('FUNKBR', {
+          font: font,
+          size: 0.15,
+          height: 0.05,
+        });
+        const leftText = new THREE.Mesh(leftTextGeometry, frontTextMaterial);
+        leftText.rotation.y = -Math.PI / 2;
+        leftText.position.set(-1.1, 0, -0.3);
+        cube.add(leftText);
       },
-      // onProgress callback
       (xhr) => {
         console.log((xhr.loaded / xhr.total * 100) + '% loaded');
       },
-      // onError callback
       (err) => {
         console.error('An error occurred loading the font:', err);
       }
@@ -95,13 +147,51 @@ export const AudioVisualizer = () => {
     // Position camera
     camera.position.z = 5;
 
+    // Mouse controls
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+
+    containerRef.current.addEventListener('mousedown', () => {
+      isDragging = true;
+    });
+
+    containerRef.current.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        const deltaMove = {
+          x: e.clientX - previousMousePosition.x,
+          y: e.clientY - previousMousePosition.y
+        };
+
+        cube.rotation.y += deltaMove.x * 0.005;
+        cube.rotation.x += deltaMove.y * 0.005;
+      }
+
+      previousMousePosition = {
+        x: e.clientX,
+        y: e.clientY
+      };
+    });
+
+    containerRef.current.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
     // Animation
     const animate = () => {
       requestAnimationFrame(animate);
       
-      // Rotate cube
-      cube.rotation.x += 0.01;
-      cube.rotation.y += 0.01;
+      if (!isDragging) {
+        // Rotate cube
+        cube.rotation.x += 0.002;
+        cube.rotation.y += 0.002;
+      }
+
+      // Animate frequency dots
+      dotsGroup.children.forEach((dot, i) => {
+        const time = Date.now() * 0.001;
+        const offset = i * 0.2;
+        dot.position.y = 1.1 + Math.sin(time + offset) * 0.1;
+      });
 
       // Pulse neon effect
       const time = Date.now() * 0.001;
@@ -133,7 +223,7 @@ export const AudioVisualizer = () => {
     <Card className="p-6 space-y-6 bg-gradient-to-br from-black/80 to-purple-900/50 backdrop-blur-sm border-neon-purple/20">
       <div 
         ref={containerRef} 
-        className="w-full h-[400px] rounded-lg"
+        className="w-full h-[400px] rounded-lg cursor-grab active:cursor-grabbing"
       />
       
       <div className="flex justify-center items-center gap-4">
@@ -176,6 +266,21 @@ export const AudioVisualizer = () => {
           className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
         >
           <Upload className="h-6 w-6" />
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={() => setLiked(!liked)}
+          className={`hover:bg-neon-purple/10 ${liked ? 'text-red-500' : 'text-neon-purple hover:text-neon-pink'}`}
+        >
+          <Heart className="h-6 w-6" fill={liked ? "currentColor" : "none"} />
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
+        >
+          <Share2 className="h-6 w-6" />
         </Button>
       </div>
     </Card>
