@@ -6,9 +6,6 @@ import { BeatUploader } from './upload/BeatUploader';
 import { AssetUploader } from './upload/AssetUploader';
 import { InstagramHandle } from './upload/InstagramHandle';
 import { RenderControls } from './upload/RenderControls';
-import { Loader2 } from 'lucide-react';
-import { MediaLayerSelector } from './visualization/MediaLayerSelector';
-import { ThreeDVisualizer } from './visualization/ThreeDVisualizer';
 
 interface VideoFile extends File {
   preview: string;
@@ -18,25 +15,20 @@ interface UploadState {
   logo?: File;
   backgroundImage?: File;
   instagramHandle: string;
-  isUploading: boolean;
 }
 
 export const VideoUploader = () => {
   const [video, setVideo] = useState<VideoFile | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>({
     instagramHandle: '',
-    isUploading: false,
   });
   const [renderProgress, setRenderProgress] = useState(0);
   const [isRendering, setIsRendering] = useState(false);
   const [videoId, setVideoId] = useState<string | null>(null);
-  const [mediaMode, setMediaMode] = useState<'video' | '3d'>('video');
-  const [cubeStyle, setCubeStyle] = useState<'neon' | 'wireframe' | 'realistic'>('neon');
 
   const handleBeatUploaded = (newVideoId: string, file: VideoFile) => {
     setVideoId(newVideoId);
     setVideo(file);
-    toast.success('Beat uploaded successfully!');
   };
 
   const handleRender = async () => {
@@ -92,49 +84,20 @@ export const VideoUploader = () => {
   };
 
   return (
-    <Card className="p-6 w-full max-w-2xl mx-auto relative">
-      {uploadState.isUploading && (
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Uploading your beat...</p>
-          </div>
-        </div>
-      )}
-
-      <MediaLayerSelector
-        selectedMode={mediaMode}
-        onModeChange={setMediaMode}
-      />
-
-      {mediaMode === 'video' ? (
-        <BeatUploader 
-          onBeatUploaded={handleBeatUploaded}
-          onUploadStateChange={(isUploading) => 
-            setUploadState(prev => ({ ...prev, isUploading }))
-          } 
-        />
-      ) : (
-        <ThreeDVisualizer cubeStyle={cubeStyle} />
-      )}
+    <Card className="p-6 w-full max-w-2xl mx-auto">
+      <BeatUploader onBeatUploaded={handleBeatUploaded} />
 
       <div className="mt-6 space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <AssetUploader
             type="logo"
             videoId={videoId}
-            onAssetUploaded={(file) => {
-              setUploadState(prev => ({ ...prev, logo: file }));
-              toast.success('Logo uploaded successfully!');
-            }}
+            onAssetUploaded={(file) => setUploadState(prev => ({ ...prev, logo: file }))}
           />
           <AssetUploader
             type="background"
             videoId={videoId}
-            onAssetUploaded={(file) => {
-              setUploadState(prev => ({ ...prev, backgroundImage: file }));
-              toast.success('Background image uploaded successfully!');
-            }}
+            onAssetUploaded={(file) => setUploadState(prev => ({ ...prev, backgroundImage: file }))}
           />
         </div>
 

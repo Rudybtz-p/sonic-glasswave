@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,73 +8,75 @@ const corsHeaders = {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const supabaseClient = createClient(
+    const { videoId } = await req.json()
+
+    const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { videoId } = await req.json()
+    // Simulate video rendering process
+    await new Promise(resolve => setTimeout(resolve, 2000))
 
-    if (!videoId) {
-      throw new Error('Video ID is required')
+    // Update video status to 'rendering'
+    await supabase
+      .from('videos')
+      .update({ render_status: 'rendering' })
+      .eq('id', videoId)
+
+    // Simulate the actual rendering process with progress updates
+    for (let progress = 0; progress <= 100; progress += 20) {
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Update progress in the database
+      await supabase
+        .from('videos')
+        .update({ render_status: `rendering:${progress}` })
+        .eq('id', videoId)
     }
 
-    // Update video status to processing
-    const { error: updateError } = await supabaseClient
+    // Generate a mock video URL (in production this would be a real rendered video)
+    const videoUrl = `https://example.com/rendered-video-${videoId}.mp4`
+
+    // Update the video record with the final URL and completed status
+    const { error: updateError } = await supabase
       .from('videos')
-      .update({ render_status: 'processing' })
+      .update({ 
+        render_status: 'completed',
+        video_url: videoUrl
+      })
       .eq('id', videoId)
 
     if (updateError) {
       throw updateError
     }
 
-    // Simulate video processing (replace with actual video processing logic)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-
-    // Update video with completed status
-    const { error: completeError } = await supabaseClient
-      .from('videos')
-      .update({ 
-        render_status: 'completed',
-        video_url: `https://example.com/processed-video-${videoId}.mp4`
-      })
-      .eq('id', videoId)
-
-    if (completeError) {
-      throw completeError
-    }
-
     return new Response(
       JSON.stringify({ 
-        success: true, 
-        message: 'Video rendering completed',
-        videoId 
+        message: 'Video rendered successfully',
+        videoUrl 
       }),
       { 
         headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        } 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        }
       }
     )
 
   } catch (error) {
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message 
-      }),
+      JSON.stringify({ error: error.message }),
       { 
-        status: 400,
         headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        },
+        status: 500
       }
     )
   }

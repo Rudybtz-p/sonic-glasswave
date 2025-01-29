@@ -9,33 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      api_credentials: {
-        Row: {
-          api_key: string
-          created_at: string | null
-          id: string
-          provider: string
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          api_key: string
-          created_at?: string | null
-          id?: string
-          provider: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          api_key?: string
-          created_at?: string | null
-          id?: string
-          provider?: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       social_media_config: {
         Row: {
           access_token: string | null
@@ -72,87 +45,51 @@ export type Database = {
         }
         Relationships: []
       }
-      user_roles: {
-        Row: {
-          created_at: string | null
-          id: string
-          role: Database["public"]["Enums"]["app_role"] | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"] | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"] | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       videos: {
         Row: {
           background_image_url: string | null
           beat_url: string
-          comments: number | null
           created_at: string | null
           description: string | null
           id: string
           instagram_handle: string | null
-          likes: number | null
           logo_url: string | null
           render_status: string | null
-          shares: number | null
           title: string
           track_name: string
           updated_at: string | null
           user_id: string | null
           video_url: string | null
-          visualization_settings: Json | null
-          visualization_type: string | null
         }
         Insert: {
           background_image_url?: string | null
           beat_url: string
-          comments?: number | null
           created_at?: string | null
           description?: string | null
           id?: string
           instagram_handle?: string | null
-          likes?: number | null
           logo_url?: string | null
           render_status?: string | null
-          shares?: number | null
           title: string
           track_name: string
           updated_at?: string | null
           user_id?: string | null
           video_url?: string | null
-          visualization_settings?: Json | null
-          visualization_type?: string | null
         }
         Update: {
           background_image_url?: string | null
           beat_url?: string
-          comments?: number | null
           created_at?: string | null
           description?: string | null
           id?: string
           instagram_handle?: string | null
-          likes?: number | null
           logo_url?: string | null
           render_status?: string | null
-          shares?: number | null
           title?: string
           track_name?: string
           updated_at?: string | null
           user_id?: string | null
           video_url?: string | null
-          visualization_settings?: Json | null
-          visualization_type?: string | null
         }
         Relationships: []
       }
@@ -161,16 +98,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          user_id: string
-          role_name: Database["public"]["Enums"]["app_role"]
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      app_role: "admin" | "user"
       social_platform: "youtube" | "instagram" | "facebook" | "tiktok"
     }
     CompositeTypes: {
