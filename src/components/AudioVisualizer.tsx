@@ -5,24 +5,57 @@ import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { Button } from './ui/button';
 import { Play, Pause, SkipBack, SkipForward, List, Upload, Share2, Heart } from 'lucide-react';
 import { Card } from './ui/card';
+import { useMediaQuery } from '@/hooks/use-mobile';
 
 export const AudioVisualizer = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [liked, setLiked] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Three.js setup
+    // Three.js setup with responsive sizing
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, containerRef.current.clientWidth / containerRef.current.clientHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     
-    renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
+    const updateSize = () => {
+      if (!containerRef.current) return;
+      const width = containerRef.current.clientWidth;
+      const height = containerRef.current.clientHeight;
+      renderer.setSize(width, height);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    };
+
+    updateSize();
+    renderer.setPixelRatio(window.devicePixelRatio);
     containerRef.current.appendChild(renderer.domElement);
 
-    // Create main cube
+    // Audio analyzer setup
+    let audioContext: AudioContext;
+    let analyzer: AnalyserNode;
+    let audioData: Uint8Array;
+    
+    const setupAudio = () => {
+      audioContext = new AudioContext();
+      analyzer = audioContext.createAnalyser();
+      analyzer.fftSize = 256;
+      audioData = new Uint8Array(analyzer.frequencyBinCount);
+      
+      // Connect audio source here when playing starts
+      if (isPlaying) {
+        // Example audio source
+        const oscillator = audioContext.createOscillator();
+        oscillator.connect(analyzer);
+        analyzer.connect(audioContext.destination);
+        oscillator.start();
+      }
+    };
+
+    // Create main cube with glass effect
     const geometry = new THREE.BoxGeometry(2, 2, 2);
     const material = new THREE.MeshPhongMaterial({
       color: 0x8B5CF6,
@@ -36,7 +69,7 @@ export const AudioVisualizer = () => {
     const cube = new THREE.Mesh(geometry, material);
     scene.add(cube);
 
-    // Add neon edges
+    // Add neon edges with enhanced glow
     const edges = new THREE.EdgesGeometry(geometry);
     const lineMaterial = new THREE.LineBasicMaterial({ 
       color: 0xD946EF,
@@ -45,8 +78,9 @@ export const AudioVisualizer = () => {
     const wireframe = new THREE.LineSegments(edges, lineMaterial);
     cube.add(wireframe);
 
-    // Create frequency dots for top face
+    // Create frequency dots with audio reactivity
     const dotsGroup = new THREE.Group();
+    const dots: THREE.Mesh[] = [];
     for(let i = 0; i < 16; i++) {
       const dotGeometry = new THREE.SphereGeometry(0.05, 16, 16);
       const dotMaterial = new THREE.MeshPhongMaterial({
@@ -60,13 +94,13 @@ export const AudioVisualizer = () => {
         1.1,
         Math.floor(i / 4) * 0.2 - 0.3
       );
+      dots.push(dot);
       dotsGroup.add(dot);
     }
     cube.add(dotsGroup);
 
-    // Load font and create text for all faces
+    // Load font and create text
     const fontLoader = new FontLoader();
-    console.log('Loading font...');
     fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', 
       (font) => {
         console.log('Font loaded successfully');
@@ -127,7 +161,7 @@ export const AudioVisualizer = () => {
       }
     );
 
-    // Add lights
+    // Enhanced lighting setup
     const ambientLight = new THREE.AmbientLight(0x404040);
     scene.add(ambientLight);
 
@@ -135,7 +169,6 @@ export const AudioVisualizer = () => {
     directionalLight.position.set(5, 5, 5);
     scene.add(directionalLight);
 
-    // Add point lights for neon effect
     const pointLight1 = new THREE.PointLight(0x8B5CF6, 1, 10);
     pointLight1.position.set(2, 2, 2);
     scene.add(pointLight1);
@@ -145,55 +178,84 @@ export const AudioVisualizer = () => {
     scene.add(pointLight2);
 
     // Position camera
-    camera.position.z = 5;
+    camera.position.z = isMobile ? 6 : 5;
 
-    // Mouse controls
+    // Touch and mouse controls
     let isDragging = false;
-    let previousMousePosition = { x: 0, y: 0 };
+    let previousPosition = { x: 0, y: 0 };
 
-    containerRef.current.addEventListener('mousedown', () => {
+    const startDrag = (x: number, y: number) => {
       isDragging = true;
-    });
+      previousPosition = { x, y };
+    };
 
-    containerRef.current.addEventListener('mousemove', (e) => {
+    const updateDrag = (x: number, y: number) => {
       if (isDragging) {
         const deltaMove = {
-          x: e.clientX - previousMousePosition.x,
-          y: e.clientY - previousMousePosition.y
+          x: x - previousPosition.x,
+          y: y - previousPosition.y
         };
 
         cube.rotation.y += deltaMove.x * 0.005;
         cube.rotation.x += deltaMove.y * 0.005;
       }
+      previousPosition = { x, y };
+    };
 
-      previousMousePosition = {
-        x: e.clientX,
-        y: e.clientY
-      };
-    });
-
-    containerRef.current.addEventListener('mouseup', () => {
+    const endDrag = () => {
       isDragging = false;
-    });
+    };
 
-    // Animation
+    // Mouse events
+    containerRef.current.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
+    containerRef.current.addEventListener('mousemove', (e) => updateDrag(e.clientX, e.clientY));
+    containerRef.current.addEventListener('mouseup', endDrag);
+
+    // Touch events
+    containerRef.current.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      startDrag(touch.clientX, touch.clientY);
+      // Center cube on touch for iOS
+      cube.position.set(0, 0, 0);
+    });
+    
+    containerRef.current.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      updateDrag(touch.clientX, touch.clientY);
+    });
+    
+    containerRef.current.addEventListener('touchend', endDrag);
+
+    // Enhanced animation with audio reactivity
     const animate = () => {
       requestAnimationFrame(animate);
       
       if (!isDragging) {
-        // Rotate cube
         cube.rotation.x += 0.002;
         cube.rotation.y += 0.002;
       }
 
-      // Animate frequency dots
-      dotsGroup.children.forEach((dot, i) => {
-        const time = Date.now() * 0.001;
-        const offset = i * 0.2;
-        dot.position.y = 1.1 + Math.sin(time + offset) * 0.1;
-      });
+      // Audio reactive animations
+      if (analyzer && isPlaying) {
+        analyzer.getByteFrequencyData(audioData);
+        
+        // Update dots based on frequency bands
+        dots.forEach((dot, i) => {
+          const frequencyBand = Math.floor(i * (audioData.length / dots.length));
+          const value = audioData[frequencyBand];
+          const scale = 1 + (value / 256) * 2;
+          dot.scale.set(scale, scale, scale);
+          dot.position.y = 1.1 + (value / 256) * 0.5;
+        });
 
-      // Pulse neon effect
+        // Pulse cube based on bass
+        const bassValue = audioData[0] / 256;
+        cube.scale.set(1 + bassValue * 0.2, 1 + bassValue * 0.2, 1 + bassValue * 0.2);
+      }
+
+      // Neon pulse effect
       const time = Date.now() * 0.001;
       pointLight1.intensity = 1 + Math.sin(time * 2) * 0.5;
       pointLight2.intensity = 1 + Math.cos(time * 2) * 0.5;
@@ -204,35 +266,36 @@ export const AudioVisualizer = () => {
     animate();
 
     // Handle window resize
-    const handleResize = () => {
-      if (!containerRef.current) return;
-      camera.aspect = containerRef.current.clientWidth / containerRef.current.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
-    };
+    window.addEventListener('resize', updateSize);
 
-    window.addEventListener('resize', handleResize);
+    // Setup audio when playing starts
+    if (isPlaying) {
+      setupAudio();
+    }
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', updateSize);
       containerRef.current?.removeChild(renderer.domElement);
+      if (audioContext) {
+        audioContext.close();
+      }
     };
-  }, []);
+  }, [isPlaying, isMobile]);
 
   return (
-    <Card className="p-6 space-y-6 bg-gradient-to-br from-black/80 to-purple-900/50 backdrop-blur-sm border-neon-purple/20">
+    <Card className="p-4 md:p-6 space-y-4 md:space-y-6 bg-gradient-to-br from-black/80 to-purple-900/50 backdrop-blur-sm border-neon-purple/20">
       <div 
         ref={containerRef} 
-        className="w-full h-[400px] rounded-lg cursor-grab active:cursor-grabbing"
+        className="w-full h-[300px] md:h-[400px] rounded-lg cursor-grab active:cursor-grabbing touch-none"
       />
       
-      <div className="flex justify-center items-center gap-4">
+      <div className="flex flex-wrap justify-center items-center gap-2 md:gap-4">
         <Button 
           variant="ghost" 
           size="icon"
           className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
         >
-          <SkipBack className="h-6 w-6" />
+          <SkipBack className="h-4 w-4 md:h-6 md:w-6" />
         </Button>
         <Button 
           variant="ghost" 
@@ -241,9 +304,9 @@ export const AudioVisualizer = () => {
           className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
         >
           {isPlaying ? (
-            <Pause className="h-6 w-6" />
+            <Pause className="h-4 w-4 md:h-6 md:w-6" />
           ) : (
-            <Play className="h-6 w-6" />
+            <Play className="h-4 w-4 md:h-6 md:w-6" />
           )}
         </Button>
         <Button 
@@ -251,21 +314,21 @@ export const AudioVisualizer = () => {
           size="icon"
           className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
         >
-          <SkipForward className="h-6 w-6" />
+          <SkipForward className="h-4 w-4 md:h-6 md:w-6" />
         </Button>
         <Button 
           variant="ghost" 
           size="icon"
           className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
         >
-          <List className="h-6 w-6" />
+          <List className="h-4 w-4 md:h-6 md:w-6" />
         </Button>
         <Button 
           variant="ghost" 
           size="icon"
           className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
         >
-          <Upload className="h-6 w-6" />
+          <Upload className="h-4 w-4 md:h-6 md:w-6" />
         </Button>
         <Button 
           variant="ghost" 
@@ -273,14 +336,14 @@ export const AudioVisualizer = () => {
           onClick={() => setLiked(!liked)}
           className={`hover:bg-neon-purple/10 ${liked ? 'text-red-500' : 'text-neon-purple hover:text-neon-pink'}`}
         >
-          <Heart className="h-6 w-6" fill={liked ? "currentColor" : "none"} />
+          <Heart className="h-4 w-4 md:h-6 md:w-6" fill={liked ? "currentColor" : "none"} />
         </Button>
         <Button 
           variant="ghost" 
           size="icon"
           className="text-neon-purple hover:text-neon-pink hover:bg-neon-purple/10"
         >
-          <Share2 className="h-6 w-6" />
+          <Share2 className="h-4 w-4 md:h-6 md:w-6" />
         </Button>
       </div>
     </Card>

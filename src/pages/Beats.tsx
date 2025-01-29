@@ -53,13 +53,13 @@ const Beats = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative py-12 md:py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-neon-purple/20 to-neon-pink/20 backdrop-blur-sm" />
-        <div className="relative container mx-auto px-4 text-center space-y-6">
-          <h1 className="text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-neon-purple via-neon-pink to-neon-orange">
+        <div className="relative container mx-auto px-4 text-center space-y-4 md:space-y-6">
+          <h1 className="text-3xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-neon-purple via-neon-pink to-neon-orange animate-text">
             Latest Trap & UK Drill Beats
           </h1>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-lg md:text-xl text-muted-foreground">
             Producer: RudyBtz
           </p>
           <Button 
@@ -72,11 +72,11 @@ const Beats = () => {
       </section>
 
       {/* Beat Showcase Grid */}
-      <section className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-neon-purple to-neon-pink bg-clip-text text-transparent">
+      <section className="container mx-auto px-4 py-8 md:py-16">
+        <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8 bg-gradient-to-r from-neon-purple to-neon-pink bg-clip-text text-transparent">
           Featured Beats
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
           {SAMPLE_BEATS.map((beat) => (
             <BeatCard
               key={beat.id}
