@@ -1,4 +1,4 @@
-import { Instagram, Youtube, Music2, SoundCloud } from "lucide-react";
+import { Instagram, Youtube, Music2, Music } from "lucide-react";
 import { Button } from "./ui/button";
 
 export const Header = () => {
@@ -36,7 +36,7 @@ export const Header = () => {
               rel="noopener noreferrer"
               className="hover:text-[#ff5500] transition-colors"
             >
-              <SoundCloud className="h-5 w-5" />
+              <Music className="h-5 w-5" />
             </a>
           </Button>
           <Button variant="ghost" size="icon" asChild>
